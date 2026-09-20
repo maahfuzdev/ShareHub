@@ -1,17 +1,17 @@
 # ShareHub
 
-ShareHub is a Spring Boot application designed to encourage reuse and reduce waste by helping people share useful and reusable resources with others in their community.
+ShareHub is a Spring Boot-based platform focused on reducing waste by making it easier for people to share useful and reusable resources with others in their community.
 
-This project is currently in its initial setup stage, with the core Spring Boot structure in place and dependencies for web, security, validation, JPA, and PostgreSQL configured.
+The application aims to connect owners of underused items with people who need them, encouraging a more sustainable and community-driven way of consuming.
 
-## Project Overview
+## Overview
 
-The idea behind ShareHub is to create a platform where users can:
+ShareHub is designed to support:
 
-- share reusable items or resources
-- browse available listings
-- connect people who need something with people who can offer it
-- promote sustainable and community-driven consumption
+- sharing reusable items and resources
+- discovering available listings
+- connecting borrowers or requesters with providers
+- promoting sustainability and community cooperation
 
 ## Tech Stack
 
@@ -43,30 +43,31 @@ sharehub/
 ├── mvnw
 ├── mvnw.cmd
 ├── README.md
-└── HELP.md
+├── HELP.md
+└── target/
 ```
 
 ## Prerequisites
 
-Before running the application, make sure you have:
+Before running the app, ensure you have:
 
 - JDK 17 or newer
-- Maven
-- PostgreSQL installed and running
+- Maven installed
+- PostgreSQL database running locally or remotely
 
 ## Configuration
 
-The application configuration is currently minimal and can be found in:
+The current configuration is minimal and located in:
 
-- src/main/resources/application.properties
+- `src/main/resources/application.properties`
 
-At the moment it only contains the app name:
+Current default setting:
 
 ```properties
 spring.application.name=sharehub
 ```
 
-For a real database setup, you will likely add PostgreSQL datasource settings such as:
+For a working database setup, you can add PostgreSQL configuration like this:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/sharehub
@@ -76,7 +77,7 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 ```
 
-## Run the Application
+## Running the Application
 
 From the project root, run:
 
@@ -84,13 +85,13 @@ From the project root, run:
 ./mvnw spring-boot:run
 ```
 
-On Windows, you can also use:
+On Windows:
 
 ```bash
 mvnw.cmd spring-boot:run
 ```
 
-## Build the Project
+## Building the Project
 
 ```bash
 ./mvnw clean package
@@ -98,19 +99,27 @@ mvnw.cmd spring-boot:run
 
 ## Current Status
 
-This project is in an early development stage. The base application skeleton is ready, but feature modules, controllers, entities, and database integration still need to be implemented according to the final product requirements.
+This project is in its early development stage. The base Spring Boot application is set up, and the project already includes dependencies for web, validation, security, JPA, and database support.
 
-## Next Steps
+Key next steps include:
 
-Possible next steps for the project include:
-
-- creating user authentication and roles
-- designing item listing and request flows
-- adding database entities for users, products, and transactions
-- building frontend pages with Thymeleaf or a React/Vue frontend
-- implementing search, filters, and messaging features
+- creating user accounts and roles
+- designing the item-sharing workflow
+- implementing listings, requests, and ownership logic
+- adding database entities and repositories
+- building UI pages for browsing and posting items
+- adding search, filters, and messaging features
 
 ## License
 
-This project does not yet specify a license in the project configuration.
+No explicit license has been set for this project yet.
+
+## Contributing
+
+Contributions are welcome as the project grows. If you want to help, you can:
+
+- improve the platform design
+- add backend features
+- build frontend pages
+- fix bugs and improve performance
 
