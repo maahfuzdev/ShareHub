@@ -28,17 +28,30 @@ ShareHub is designed to support:
 
 ```text
 sharehub/
+├── Dockerfile
+├── docker-compose.yml
 ├── src/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/sharehub/sharehub/
-│   │   │       └── SharehubApplication.java
+│   │   │       ├── SharehubApplication.java
+│   │   │       ├── config/
+│   │   │       ├── controller/
+│   │   │       ├── dto/
+│   │   │       ├── entity/
+│   │   │       ├── exception/
+│   │   │       ├── repository/
+│   │   │       ├── security/
+│   │   │       └── service/
 │   │   └── resources/
 │   │       ├── application.properties
+│   │       ├── db/
+│   │       │   └── migration/
 │   │       ├── static/
 │   │       └── templates/
 │   └── test/
-│       └── java/
+│       └── java/com/sharehub/sharehub/
+│           └── SharehubApplicationTests.java
 ├── pom.xml
 ├── mvnw
 ├── mvnw.cmd
@@ -90,6 +103,14 @@ On Windows:
 ```bash
 mvnw.cmd spring-boot:run
 ```
+
+The application starts on the default Spring Boot port: `http://localhost:8080`.
+
+## Running with Docker
+
+The repository includes `Dockerfile` and `docker-compose.yml` files for containerized
+deployment. They are currently placeholders and need the application image and database
+service configuration before Docker Compose can be used to run the complete stack.
 
 ## Building the Project
 
