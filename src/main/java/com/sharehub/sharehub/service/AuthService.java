@@ -1,10 +1,10 @@
 package com.sharehub.sharehub.service;
 
-import com.sharehub.dto.request.  LoginRequest;
-import com.sharehub.dto.request.RegisterRequest;
-import com.sharehub.dto.response.AuthResponse;
-import com.sharehub.entity.User;
-import com.sharehub.repository.UserRepository;
+import com.sharehub.sharehub.dto.request.LoginRequest;
+import com.sharehub.sharehub.dto.request.RegisterRequest;
+import com.sharehub.sharehub.dto.response.AuthResponse;
+import com.sharehub.sharehub.entity.User;
+import com.sharehub.sharehub.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

@@ -179,15 +179,10 @@ public class SecurityConfig {
     // 4. Authentication Provider
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();  // ✅ সঠিক!
 
-        DaoAuthenticationProvider provider =
-            new DaoAuthenticationProvider(userDetailsService);
-
-        // Password Verification
-        provider.setPasswordEncoder(
-            passwordEncoder()
-        );
-
+        provider.setUserDetailsService(userDetailsService);   // ← আলাদা setter
+        provider.setPasswordEncoder(passwordEncoder());
 
         return provider;
     }
