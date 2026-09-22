@@ -117,7 +117,7 @@ public class SecurityConfig {
                 .clearAuthentication(true)
 
                 .logoutSuccessUrl(
-                    "/api/auth/logout-success"
+                     "/login?logout"
                 )
 
                 .permitAll()
