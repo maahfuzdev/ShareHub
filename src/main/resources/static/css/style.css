@@ -1,0 +1,36 @@
+/* ShareHub Custom Styles */
+:root {
+    --primary: #2d7d46;
+    --primary-dark: #1a5a32;
+    --dark: #1a2332;
+    --gray: #6b7891;
+    --light: #f5f7fa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--light);
+    color: var(--dark);
+}
+
+/* Utility Classes */
+.text-primary-custom { color: var(--primary); }
+.bg-primary-custom { background: var(--primary); }
+.rounded-custom { border-radius: 12px; }
+.shadow-custom { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
