@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Footer Fragment</title>
+</head>
+<body>
+
+<!-- Footer Fragment -->
+<footer th:fragment="footer" class="footer-fragment">
+    <style>
+        .footer-fragment {
+            background: #1a2332;
+            color: #6b7891;
+            padding: 24px 32px;
+            text-align: center;
+            margin-top: 60px;
+            font-size: 0.9rem;
+        }
+        .footer-fragment a {
+            color: #2d7d46;
+            text-decoration: none;
+        }
+    </style>
+
+    <p>&copy; 2026 <strong style="color: #fff;">ShareHub</strong>. All rights reserved.</p>
+    <p style="margin-top: 8px;">
+        <a th:href="@{/about}">About</a> •
+        <a th:href="@{/contact}">Contact</a> •
+        <a th:href="@{/privacy}">Privacy</a>
+    </p>
+</footer>
+
+</body>
+</html>
