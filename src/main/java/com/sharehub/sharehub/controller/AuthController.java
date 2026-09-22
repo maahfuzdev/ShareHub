@@ -1,6 +1,10 @@
 package com.sharehub.sharehub.controller;
 
-
+import com.sharehub.sharehub.dto.request.LoginRequest;
+import com.sharehub.sharehub.dto.request.RegisterRequest;
+import com.sharehub.sharehub.dto.response.AuthResponse;
+import com.sharehub.sharehub.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
