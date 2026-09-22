@@ -71,6 +71,16 @@ public class SecurityConfig {
             // Authorization Rules
             .authorizeHttpRequests(auth -> auth
 
+                // Thymeleaf pages and their static assets
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/register",
+                    "/css/**",
+                    "/js/**"
+                )
+                .permitAll()
+
                 // Public Authentication APIs
                 .requestMatchers("/api/auth/**")
                 .permitAll()
