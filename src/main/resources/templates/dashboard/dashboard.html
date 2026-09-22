@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ShareHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fa;
+        }
+        .navbar {
+            background: #1a2332;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2d7d46, #1a5a32);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #fff;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2d7d46, #1a5a32);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .btn-logout {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+        .welcome-card {
+            background: linear-gradient(135deg, #2d7d46, #1a5a32);
+            color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(45,125,70,0.2);
+        }
+        .welcome-card h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .welcome-card p {
+            opacity: 0.9;
+        }
+        .role-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 16px;
+            text-transform: uppercase;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(45,125,70,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #2d7d46;
+            margin-bottom: 16px;
+        }
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a2332;
+            margin-bottom: 4px;
+        }
+        .stat-card p {
+            color: #6b7891;
+            font-size: 0.9rem;
+        }
+        .actions-card {
+            background: #fff;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .actions-card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a2332;
+            margin-bottom: 20px;
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .action-btn {
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px solid #e5e9f0;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #1a2332;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .action-btn:hover {
+            border-color: #2d7d46;
+            background: rgba(45,125,70,0.05);
+            color: #2d7d46;
+            transform: translateY(-2px);
+        }
+        .action-btn i {
+            font-size: 1.5rem;
+            color: #2d7d46;
+        }
+        .action-btn span {
+            font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .welcome-card { padding: 24px; }
+            .welcome-card h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a class="navbar-brand" th:href="@{/dashboard}">
+        <div class="brand-logo">SH</div>
+        ShareHub
+    </a>
+    <div class="user-info">
+        <div class="user-avatar" sec:authentication="name" 
+             th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
+        <div>
+            <div style="font-weight: 600;" sec:authentication="name">User</div>
+        </div>
+        <a th:href="@{/logout}" class="btn-logout">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+    
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <h1>Welcome back, <span sec:authentication="name">User</span>!</h1>
+        <p>Here's your ShareHub dashboard. Start sharing and helping your community.</p>
+        <div class="role-badge" sec:authorize="hasRole('DONOR')">
+            <i class="bi bi-gift-fill"></i> Donor
+        </div>
+        <div class="role-badge" sec:authorize="hasRole('RECIPIENT')">
+            <i class="bi bi-hand-thumbs-up-fill"></i> Recipient
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+            <h3>0</h3>
+            <p>Total Donations</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+            <h3>0</h3>
+            <p>People Helped</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+            <h3>0</h3>
+            <p>Completed</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+            <h3>0</h3>
+            <p>Pending</p>
+        </div>
+    </div>
+
+    <!-- Actions Card -->
+    <div class="actions-card">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+            <!-- Donor Actions -->
+            <a sec:authorize="hasRole('DONOR')" th:href="@{/donations/new}" class="action-btn">
+                <i class="bi bi-plus-circle"></i>
+                <span>Create Donation</span>
+            </a>
+            <a sec:authorize="hasRole('DONOR')" th:href="@{/donations/my}" class="action-btn">
+                <i class="bi bi-list-ul"></i>
+                <span>My Donations</span>
+            </a>
+
+            <!-- Recipient Actions -->
+            <a sec:authorize="hasRole('RECIPIENT')" th:href="@{/resources}" class="action-btn">
+                <i class="bi bi-search"></i>
+                <span>Browse Resources</span>
+            </a>
+            <a sec:authorize="hasRole('RECIPIENT')" th:href="@{/requests/my}" class="action-btn">
+                <i class="bi bi-inbox"></i>
+                <span>My Requests</span>
+            </a>
+
+            <!-- Common Actions -->
+            <a th:href="@{/profile}" class="action-btn">
+                <i class="bi bi-person-circle"></i>
+                <span>My Profile</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
