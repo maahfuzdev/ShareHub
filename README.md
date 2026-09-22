@@ -1,146 +1,253 @@
 # ShareHub
 
-ShareHub is a Spring Boot-based platform focused on reducing waste by making it easier for people to share useful and reusable resources with others in their community.
+ShareHub is a community resource-sharing platform built with Spring Boot. It is designed to connect people who can give useful resources with people who need support.
 
-The application aims to connect owners of underused items with people who need them, encouraging a more sustainable and community-driven way of consuming.
+The project supports two clients from the same backend:
 
-## Overview
+- A Thymeleaf web experience for browser users.
+- A JSON REST API for a future mobile application or other clients.
 
-ShareHub is designed to support:
+## Features
 
-- sharing reusable items and resources
-- discovering available listings
-- connecting borrowers or requesters with providers
-- promoting sustainability and community cooperation
+- Session-based registration, login and logout.
+- `DONOR` and `RECIPIENT` user roles.
+- BCrypt password hashing through Spring Security.
+- Thymeleaf login, registration and protected dashboard pages.
+- Profile page populated from the authenticated user.
+- Resources discovery page prepared for future listings.
+- PostgreSQL persistence with Flyway database migrations.
+- Swagger/OpenAPI documentation.
+- Latitude and longitude fields prepared for location-aware features.
+- Docker Compose setup for the application and PostgreSQL.
 
-## Tech Stack
+## Technology
 
 - Java 17
-- Spring Boot 4.1.1
+- Spring Boot 3.1.5
 - Spring Web MVC
 - Spring Data JPA
-- Spring Security
-- Thymeleaf
-- PostgreSQL
-- Maven
+- Spring Security 6
+- Thymeleaf and Thymeleaf Spring Security extras
+- PostgreSQL 15
+- Flyway
+- Maven Wrapper
+- Bootstrap Icons and custom responsive CSS
+
+## Architecture
+
+The web and mobile flows share the same service and repository layers:
+
+```text
+Browser                  Mobile app
+	 |                         |
+	 v                         v
+WebController          AuthController / API controllers
+	 |                         |
+	 +-----------+-------------+
+							 v
+					Service layer
+							 |
+							 v
+			 Repository + PostgreSQL
+```
+
+`WebController` returns Thymeleaf views. REST controllers return JSON and are intended to be consumed by the mobile application. Business logic belongs in services so it is not duplicated between clients.
 
 ## Project Structure
 
 ```text
-sharehub/
-├── Dockerfile
-├── docker-compose.yml
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/sharehub/sharehub/
-│   │   │       ├── SharehubApplication.java
-│   │   │       ├── config/
-│   │   │       ├── controller/
-│   │   │       ├── dto/
-│   │   │       ├── entity/
-│   │   │       ├── exception/
-│   │   │       ├── repository/
-│   │   │       ├── security/
-│   │   │       └── service/
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       ├── db/
-│   │       │   └── migration/
-│   │       ├── static/
-│   │       └── templates/
-│   └── test/
-│       └── java/com/sharehub/sharehub/
-│           └── SharehubApplicationTests.java
-├── pom.xml
-├── mvnw
-├── mvnw.cmd
-├── README.md
-├── HELP.md
-└── target/
+src/main/java/com/sharehub/sharehub/
+├── config/                  Spring Security configuration
+├── controller/              Web and REST controllers
+├── dto/                     Request and response objects
+├── entity/                  JPA entities
+├── exception/               Global exception handling
+├── repository/              Spring Data repositories
+└── service/                 Authentication and user services
+
+src/main/resources/
+├── db/migration/             Flyway SQL migrations
+├── static/
+│   ├── css/style.css         Shared visual styles
+│   └── js/main.js            Auth and logout interactions
+└── templates/
+		├── auth/                 Login and registration pages
+		├── dashboard/            Protected dashboard
+		├── profile/              Authenticated profile page
+		├── resources/            Resources discovery page
+		├── error/                Error page
+		└── fragments/             Reusable header and footer fragments
 ```
 
-## Prerequisites
+## Requirements
 
-Before running the app, ensure you have:
+- JDK 17 or newer.
+- PostgreSQL 15 or a compatible PostgreSQL server.
+- Git, if cloning the repository.
 
-- JDK 17 or newer
-- Maven installed
-- PostgreSQL database running locally or remotely
+## Database Setup
 
-## Configuration
+The default local configuration expects:
 
-The current configuration is minimal and located in:
-
-- `src/main/resources/application.properties`
-
-Current default setting:
-
-```properties
-spring.application.name=sharehub
+```text
+Host:     localhost
+Port:     5432
+Database: sharehub
+Username: postgres
+Password: postgres
 ```
 
-For a working database setup, you can add PostgreSQL configuration like this:
+Create the database before starting the application:
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/sharehub
-spring.datasource.username=postgres
-spring.datasource.password=your_password
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+```sql
+CREATE DATABASE sharehub;
 ```
 
-## Running the Application
+Flyway automatically applies `V1__Create_User_Table.sql` on startup. The migration creates the `users` table, role column, account timestamps, and nullable `latitude` and `longitude` columns.
 
-From the project root, run:
+For a real deployment, replace the default credentials with environment variables or an external secret manager.
+
+## Run Locally
+
+From the project directory:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-On Windows:
+Windows:
 
-```bash
-mvnw.cmd spring-boot:run
+```powershell
+./mvnw.cmd spring-boot:run
 ```
 
-The application starts on the default Spring Boot port: `http://localhost:8080`.
+Open:
 
-## Running with Docker
+- Web app: <http://localhost:8080/login>
+- Register: <http://localhost:8080/register>
+- Swagger UI: <http://localhost:8080/swagger-ui/index.html>
 
-The repository includes `Dockerfile` and `docker-compose.yml` files for containerized
-deployment. They are currently placeholders and need the application image and database
-service configuration before Docker Compose can be used to run the complete stack.
+## Run with Docker Compose
 
-## Building the Project
+Docker Compose starts PostgreSQL and the Spring Boot application:
 
 ```bash
-./mvnw clean package
+docker compose up --build
 ```
 
-## Current Status
+The application is available at <http://localhost:8080>. To stop the stack:
 
-This project is in its early development stage. The base Spring Boot application is set up, and the project already includes dependencies for web, validation, security, JPA, and database support.
+```bash
+docker compose down
+```
 
-Key next steps include:
+To remove the persisted PostgreSQL volume as well:
 
-- creating user accounts and roles
-- designing the item-sharing workflow
-- implementing listings, requests, and ownership logic
-- adding database entities and repositories
-- building UI pages for browsing and posting items
-- adding search, filters, and messaging features
+```bash
+docker compose down -v
+```
+
+## REST API
+
+All authentication endpoints are under `/api/auth`.
+
+### Register
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+```
+
+```json
+{
+	"email": "member@example.com",
+	"password": "secret123",
+	"name": "Community Member",
+	"phone": "01700000000",
+	"address": "Dhaka",
+	"latitude": 23.8103,
+	"longitude": 90.4125,
+	"role": "DONOR"
+}
+```
+
+`role` must be either `DONOR` or `RECIPIENT`. Registration creates a session automatically.
+
+### Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+```json
+{
+	"email": "member@example.com",
+	"password": "secret123"
+}
+```
+
+The response creates a session cookie named `SHAREHUB_SESSION`. Mobile clients should persist and send the session cookie with later requests.
+
+### Session Information
+
+```http
+GET /api/auth/session-info
+```
+
+### Logout
+
+```http
+POST /api/auth/logout
+```
+
+### Protected Dashboard API
+
+```http
+GET /api/dashboard
+```
+
+This endpoint requires an authenticated session and returns the current user's email, authorities and authentication state.
+
+## Web Routes
+
+| Route | Access | Purpose |
+|---|---|---|
+| `/login` | Public | Thymeleaf login page |
+| `/register` | Public | Thymeleaf registration page |
+| `/dashboard` | Authenticated | User dashboard |
+| `/profile` | Authenticated | Current user's profile |
+| `/resources` | Authenticated | Resource discovery view |
+| `/` | Authenticated | Redirects to dashboard |
+
+## Build and Test
+
+Compile and package without starting the database-dependent test context:
+
+```bash
+./mvnw package -DskipTests
+```
+
+Run the full test suite:
+
+```bash
+./mvnw test
+```
+
+The integration context test requires PostgreSQL credentials that match `application.properties` or the active environment. If PostgreSQL is unavailable or the password differs, the test context will fail during Flyway initialization.
+
+## Current Scope
+
+The authentication and first web experience are in place. The next product layer can add:
+
+- Donation and resource listing entities.
+- Donor listing creation and management.
+- Recipient requests and request history.
+- Search, filtering and location-based discovery.
+- Profile editing and account settings.
+- Mobile API clients and refreshable authentication.
 
 ## License
 
-No explicit license has been set for this project yet.
-
-## Contributing
-
-Contributions are welcome as the project grows. If you want to help, you can:
-
-- improve the platform design
-- add backend features
-- build frontend pages
-- fix bugs and improve performance
+No explicit license has been added yet.
 
