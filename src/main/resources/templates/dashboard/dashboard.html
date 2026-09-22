@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -205,9 +206,9 @@
         <div>
             <div style="font-weight: 600;" sec:authentication="name">User</div>
         </div>
-        <a th:href="@{/logout}" class="btn-logout">
-            <i class="bi bi-box-arrow-right"></i> Logout
-        </a>
+       <button type="button" id="logoutBtn" class="btn-logout">
+    <i class="bi bi-box-arrow-right"></i> Logout
+</button>
     </div>
 </nav>
 
@@ -254,17 +255,17 @@
     <div class="actions-card">
         <h2>Quick Actions</h2>
         <div class="action-buttons">
-            <!-- Donor Actions -->
-            <a sec:authorize="hasRole('DONOR')" th:href="@{/donations/new}" class="action-btn">
+            <!-- Donor Actions 
+            {% comment %} <a sec:authorize="hasRole('DONOR')" th:href="@{/donations/new}" class="action-btn">
                 <i class="bi bi-plus-circle"></i>
                 <span>Create Donation</span>
             </a>
             <a sec:authorize="hasRole('DONOR')" th:href="@{/donations/my}" class="action-btn">
                 <i class="bi bi-list-ul"></i>
                 <span>My Donations</span>
-            </a>
+            </a> -->
 
-            <!-- Recipient Actions -->
+            <!-- Recipient Actions 
             <a sec:authorize="hasRole('RECIPIENT')" th:href="@{/resources}" class="action-btn">
                 <i class="bi bi-search"></i>
                 <span>Browse Resources</span>
@@ -272,18 +273,23 @@
             <a sec:authorize="hasRole('RECIPIENT')" th:href="@{/requests/my}" class="action-btn">
                 <i class="bi bi-inbox"></i>
                 <span>My Requests</span>
-            </a>
+            </a>-->
 
             <!-- Common Actions -->
             <a th:href="@{/profile}" class="action-btn">
                 <i class="bi bi-person-circle"></i>
                 <span>My Profile</span>
             </a>
+            <a th:href="@{/resources}" class="action-btn" sec:authorize="hasRole('RECIPIENT')">
+                <i class="bi bi-compass"></i>
+                <span>Explore Resources</span>
+            </a>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
 
 </body>
 </html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources | ShareHub</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-page">
+<nav class="app-nav"><a class="app-brand" th:href="@{/dashboard}"><span>SH</span> ShareHub</a><div class="app-nav-links"><a th:href="@{/dashboard}">Dashboard</a><a class="active" th:href="@{/resources}">Resources</a><a th:href="@{/profile}">Profile</a><button id="logoutBtn" class="nav-logout" type="button">Sign out</button></div></nav>
+<main class="page-wrap resources-page">
+    <div class="resource-hero">
+        <div class="resource-hero-copy"><p class="kicker">Community board / 01</p><h1>Find what<br><em>you need.</em></h1><p>Useful support starts with knowing where to look. Browse the spaces our community is building together.</p></div>
+        <div class="resource-orbit"><div class="orbit-core"><i class="bi bi-compass"></i></div><span class="orbit-label orbit-label-one">Give freely</span><span class="orbit-label orbit-label-two">Receive kindly</span><span class="orbit-label orbit-label-three">Grow together</span></div>
+    </div>
+    <div class="resource-toolbar"><div><p class="kicker">Explore by need</p><h2>What are you looking for?</h2></div><div class="resource-search"><i class="bi bi-search"></i><input type="search" placeholder="Search resources" aria-label="Search resources"><span>⌘ K</span></div></div>
+    <section class="resource-grid"><article class="resource-card"><div class="resource-card-top"><div class="resource-icon coral"><i class="bi bi-box-seam"></i></div><span class="resource-number">01</span></div><h2>Essentials</h2><p>Food, clothing and everyday supplies shared by generous community members.</p><span class="resource-status">Preparing the first listings <i class="bi bi-arrow-up-right"></i></span></article><article class="resource-card featured"><div class="resource-card-top"><div class="resource-icon green"><i class="bi bi-book"></i></div><span class="resource-number">02</span></div><h2>Learning support</h2><p>Educational materials, mentorship and opportunities to help you move forward.</p><span class="resource-status">Preparing the first listings <i class="bi bi-arrow-up-right"></i></span></article><article class="resource-card"><div class="resource-card-top"><div class="resource-icon blue"><i class="bi bi-heart-pulse"></i></div><span class="resource-number">03</span></div><h2>Care & wellbeing</h2><p>Local guidance and practical support for healthier days ahead.</p><span class="resource-status">Preparing the first listings <i class="bi bi-arrow-up-right"></i></span></article></section>
+    <section class="resource-note"><span class="note-symbol">+</span><div><p class="kicker">A shared promise</p><h2>Every useful thing starts with someone choosing to share.</h2></div><p>ShareHub is growing one thoughtful contribution at a time. Your next action could be the one someone remembers.</p></section>
+</main>
+<script th:src="@{/js/main.js}"></script></body></html>
