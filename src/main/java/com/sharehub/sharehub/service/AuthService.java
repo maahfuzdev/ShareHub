@@ -1,15 +1,7 @@
 package com.sharehub.sharehub.service;
 
-import com.sharehub.dto.request.  LoginRequest;
-import com.sharehub.dto.request.RegisterRequest;
-import com.sharehub.dto.response.AuthResponse;
-import com.sharehub.entity.User;
-import com.sharehub.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
+
+import org.springframework.security.authentication.  AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -18,6 +10,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.sharehub.sharehub.dto.request.LoginRequest;
+import com.sharehub.sharehub.dto.request.RegisterRequest;
+import com.sharehub.sharehub.dto.response.AuthResponse;
+import com.sharehub.sharehub.entity.User;
+import com.sharehub.sharehub.repository.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
