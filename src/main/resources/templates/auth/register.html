@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | ShareHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-container {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+        }
+        .auth-left {
+            background: linear-gradient(135deg, #2d7d46, #1a5a32);
+            padding: 60px 40px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .auth-left h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .auth-left p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+        .auth-right {
+            padding: 50px 40px;
+        }
+        .auth-right h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a2332;
+            margin-bottom: 8px;
+        }
+        .auth-right .subtitle {
+            color: #6b7891;
+            margin-bottom: 28px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1a2332;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e9f0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2d7d46;
+            box-shadow: 0 0 0 4px rgba(45,125,70,0.1);
+        }
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .role-option {
+            padding: 16px;
+            border: 2px solid #e5e9f0;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .role-option:hover {
+            border-color: #2d7d46;
+        }
+        .role-option.selected {
+            border-color: #2d7d46;
+            background: rgba(45,125,70,0.05);
+        }
+        .role-option input {
+            display: none;
+        }
+        .role-option i {
+            font-size: 1.5rem;
+            color: #2d7d46;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .role-option span {
+            font-weight: 600;
+            color: #1a2332;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2d7d46, #1a5a32);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(45,125,70,0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #6b7891;
+            font-size: 0.9rem;
+        }
+        .auth-link a {
+            color: #2d7d46;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        @media (max-width: 768px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .auth-left {
+                padding: 40px 30px;
+            }
+            .auth-right {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <!-- Left Side -->
+    <div class="auth-left">
+        <div class="brand-logo">SH</div>
+        <h1>Join ShareHub</h1>
+        <p>Create your account and start sharing resources with those who need them most.</p>
+    </div>
+
+    <!-- Right Side - Register Form -->
+    <div class="auth-right">
+        <h2>Create Account</h2>
+        <p class="subtitle">Fill in your details to get started</p>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Register Form -->
+        <form th:action="@{/register}" method="post" id="registerForm" th:object="${user}">
+
+            <!-- Role Selection -->
+            <label style="font-weight: 600; color: #1a2332; font-size: 0.9rem; display: block; margin-bottom: 8px;">
+                I want to join as
+            </label>
+            <div class="role-selector">
+                <label class="role-option" onclick="selectRole('DONOR')">
+                    <input type="radio" th:field="*{role}" value="DONOR" required>
+                    <i class="bi bi-gift-fill"></i>
+                    <span>Donor</span>
+                </label>
+                <label class="role-option" onclick="selectRole('RECIPIENT')">
+                    <input type="radio" th:field="*{role}" value="RECIPIENT" required>
+                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                    <span>Recipient</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" th:field="*{name}"
+                       placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" th:field="*{email}"
+                           placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" th:field="*{phone}"
+                           placeholder="01712345678">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" th:field="*{password}"
+                       placeholder="Minimum 6 characters" minlength="6" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" th:field="*{address}"
+                       placeholder="Your address">
+            </div>
+
+            <button type="submit" class="btn-primary" id="registerBtn">
+                <i class="bi bi-person-plus-fill me-2"></i>Create Account
+            </button>
+        </form>
+
+        <div class="auth-link">
+            Already have an account?
+            <a th:href="@{/login}">Sign in</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectRole(role) {
+        document.querySelectorAll('.role-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        event.currentTarget.classList.add('selected');
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const role = document.querySelector('input[name="role"]:checked');
+        if (!role) {
+            e.preventDefault();
+            alert('Please select a role (Donor or Recipient)');
+            return;
+        }
+
+        const btn = document.getElementById('registerBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account...';
+    });
+</script>
+
+</body>
+</html>
