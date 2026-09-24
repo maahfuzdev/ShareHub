@@ -5,20 +5,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donor Dashboard | ShareHub</title>
+    <title th:text="${pageTitle} ?: 'Dashboard | ShareHub'">Dashboard | ShareHub</title>
 
-    <!-- Fonts & Icons -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap"
           rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <!-- Bootstrap 5.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
+    <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
 
     <style>
@@ -28,6 +27,7 @@
             --primary-light: #eef5f1;
             --accent: #e57d5e;
             --accent-dark: #c95e3f;
+            --accent-light: #fff3ef;
             --dark: #172620;
             --gray: #6b7d75;
             --border: #dbe5dc;
@@ -60,2379 +60,1303 @@
             color: #fff;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: -0.4px;
+            font-size: 1.25rem;
         }
 
-        .brand-logo-pill {
-            width: 34px;
-            height: 34px;
-            background: var(--accent);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 800;
-            font-size: 0.9rem;
+        .brand-badge {
+            font-size: 0.72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
-        .nav-actions {
+        .role-pill-donor {
+            background: rgba(229, 125, 94, 0.25);
+            color: #ffc4b3;
+            border: 1px solid rgba(229, 125, 94, 0.4);
+        }
+
+        .role-pill-recipient {
+            background: rgba(72, 187, 120, 0.25);
+            color: #bbf7d0;
+            border: 1px solid rgba(72, 187, 120, 0.4);
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid var(--border);
             display: flex;
             align-items: center;
             gap: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .nav-link-custom {
-            color: #d1e2d7;
-            font-size: 0.88rem;
-            font-weight: 500;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .nav-link-custom:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .user-chip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 10px 4px 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
-            color: #fff;
-            font-size: 0.85rem;
-        }
-
-        .user-chip-avatar {
-            width: 26px;
-            height: 26px;
-            background: #eaf2ed;
-            color: var(--primary-dark);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.78rem;
-        }
-
-        .btn-nav-logout {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-nav-logout:hover {
-            background: rgba(229, 125, 94, 0.9);
-            border-color: transparent;
-        }
-
-        /* Container */
-        .dashboard-container {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 24px 20px 50px;
-        }
-
-        /* Top Hero Header */
-        .dashboard-head {
-            margin-bottom: 24px;
-        }
-
-        .dashboard-head h1 {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin: 0 0 4px;
-        }
-
-        .dashboard-head p {
-            color: var(--gray);
-            font-size: 0.92rem;
-            margin: 0;
-        }
-
-        /* Stats Row */
-        .stats-deck {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-bottom: 24px;
-        }
-
-        .stat-box {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(23, 38, 32, 0.02);
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--gray);
-            margin-bottom: 3px;
-        }
-
-        .stat-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--dark);
-            line-height: 1;
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
         }
 
         .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
         }
 
-        .icon-green {
-            background: #eaf5ee;
+        .stat-icon.primary {
+            background: var(--primary-light);
             color: var(--primary);
         }
 
-        .icon-coral {
-            background: #fdf0ec;
+        .stat-icon.accent {
+            background: var(--accent-light);
             color: var(--accent);
         }
 
-        .icon-blue {
-            background: #e8f4f8;
-            color: #2d7394;
+        .stat-icon.warning {
+            background: #fef3c7;
+            color: #d97706;
         }
 
-        .icon-gold {
-            background: #fef7e6;
-            color: #b8860b;
+        .stat-icon.info {
+            background: #e0f2fe;
+            color: #0284c7;
         }
 
-        /* Workspace Layout */
-        .workspace-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            align-items: start;
+        .stat-number {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.1;
         }
 
-        @media (min-width: 992px) {
-            .workspace-grid {
-                grid-template-columns: 420px 1fr;
-            }
+        .stat-label {
+            font-size: 0.84rem;
+            color: var(--gray);
+            margin-top: 2px;
         }
 
-        /* ================================================================
-           LIGHT & NOTICEABLE POST DONATION CARD
-           ================================================================ */
-
-        .post-card {
-            background: #fff;
-            border: 1px solid #e7ddd8;
-            border-radius: 14px;
-            box-shadow: 0 6px 20px rgba(23, 38, 32, 0.05);
+        /* Post Donation Studio Card */
+        .post-donation-card {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 8px 28px rgba(229, 125, 94, 0.12);
             overflow: hidden;
-            position: relative;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .post-card-header {
-            background: #fff7f3;
-            color: #4a2c24;
-            padding: 16px 20px;
+        .post-donation-header {
+            background: linear-gradient(135deg, #e57d5e 0%, #c95e3f 100%);
+            color: #ffffff;
+            padding: 16px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #f2ddd5;
         }
 
-        .post-card-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
+        .post-donation-header h5 {
             margin: 0;
+            font-weight: 700;
+            font-size: 1.15rem;
             display: flex;
             align-items: center;
             gap: 9px;
-            color: #4a2c24;
+            letter-spacing: -0.2px;
         }
 
-        .post-header-badge {
-            background: #fbe8df;
-            color: #a8472a;
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 3px 9px;
-            border-radius: 12px;
-            letter-spacing: 0.3px;
-        }
-
-        .post-card-body {
-            padding: 22px 20px;
-            background: #fff;
-        }
-
-        /* Warm Noticeable Dropzone */
-        .upload-dropzone {
-            border: 2px dashed #f0b5a3;
-            border-radius: 10px;
-            background: #fff9f6;
-            padding: 22px 14px;
+        /* Photo Upload Dropzone */
+        .photo-dropzone {
+            border: 2px dashed #e57d5e;
+            background: #fffaf8;
+            border-radius: 14px;
+            padding: 22px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .upload-dropzone:hover,
-        .upload-dropzone.drag-active {
-            border-color: #d96b4a;
-            background: #fff0ea;
-        }
-
-        .upload-dropzone i {
-            font-size: 1.85rem;
-            color: #d96b4a;
-            margin-bottom: 6px;
-            display: inline-block;
-        }
-
-        .upload-dropzone .upload-title {
-            font-size: 0.92rem;
-            font-weight: 600;
-            color: #3b2520;
-            margin-bottom: 2px;
-        }
-
-        .upload-dropzone .upload-sub {
-            font-size: 0.78rem;
-            color: #8c736c;
-            margin: 0;
-        }
-
-        /* Image Preview Box */
-        .preview-box {
+            transition: all 0.2s ease;
             position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #f0b5a3;
-            height: 190px;
-            background: #111;
-            display: none;
         }
 
-        .preview-box img {
+        .photo-dropzone:hover, .photo-dropzone.dragover {
+            background: #fff0eb;
+            border-color: var(--accent-dark);
+            transform: scale(1.008);
+        }
+
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .photo-thumb {
+            position: relative;
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .photo-thumb img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .preview-bar {
+        .photo-thumb .btn-remove-thumb {
             position: absolute;
-            bottom: 0;
-            inset-inline: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.75));
-            padding: 10px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-preview-action {
-            background: rgba(255, 255, 255, 0.92);
-            color: var(--dark);
-            border: none;
-            padding: 4px 10px;
-            border-radius: 5px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .btn-preview-delete {
-            background: #e57d5e;
-            color: #fff;
-        }
-
-        /* Clean Form Elements with Warm Focus */
-        .field-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #4a2c24;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .field-input,
-        .field-select {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 0.9rem;
-            border: 1px solid #e2ddd8;
-            border-radius: 7px;
-            background: #fff;
-            color: var(--dark);
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .field-input:focus,
-        .field-select:focus {
-            outline: none;
-            border-color: #d96b4a;
-            box-shadow: 0 0 0 3px rgba(229, 125, 94, 0.16);
-        }
-
-        /* Simple Expandable Details Bar */
-        .toggle-details-btn {
-            background: transparent;
-            border: none;
-            color: #c95e3f;
-            font-size: 0.84rem;
-            font-weight: 600;
-            padding: 0;
-            margin: 14px 0 10px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .toggle-details-btn:hover {
-            color: #a8472a;
-            text-decoration: underline;
-        }
-
-        .details-collapsed-box {
-            display: none;
-            background: #fffcfb;
-            border: 1px solid #fae2db;
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-
-        .details-collapsed-box small {
-            font-size: 0.76rem;
-            color: #8c736c;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        /* Prominent Post Button */
-        .btn-post-now {
-            background: linear-gradient(135deg, #e57d5e 0%, #c95e3f 100%);
+            top: 3px;
+            right: 3px;
+            background: rgba(0, 0, 0, 0.65);
             color: #fff;
             border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.96rem;
-            font-weight: 700;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(229, 125, 94, 0.32);
-            transition: all 0.2s;
-        }
-
-        .btn-post-now:hover {
-            background: linear-gradient(135deg, #d86f50 0%, #b85233 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(229, 125, 94, 0.4);
-        }
-
-        /* Right Column: Shared Items Feed */
-        .feed-card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            box-shadow: 0 4px 16px rgba(23, 38, 32, 0.03);
-            overflow: hidden;
-        }
-
-        .feed-header {
-            padding: 16px 22px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .feed-header h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .feed-filters {
-            display: flex;
-            gap: 6px;
-            background: #eef3ee;
-            padding: 3px;
-            border-radius: 6px;
-        }
-
-        .filter-btn {
-            border: none;
-            background: transparent;
-            padding: 5px 12px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--gray);
             cursor: pointer;
         }
 
-        .filter-btn.active {
-            background: #fff;
-            color: var(--primary-dark);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-
-        .feed-body {
-            padding: 20px;
-        }
-
-        .search-row {
-            margin-bottom: 16px;
-        }
-
-        .search-box {
-            position: relative;
-            max-width: 280px;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-            font-size: 0.82rem;
-        }
-
-        .search-box input {
-            padding: 6px 10px 6px 30px;
-            font-size: 0.84rem;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            width: 100%;
-        }
-
-        /* Grid Cards */
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 18px;
-        }
-
+        /* Feed & Resource Cards */
         .item-card {
             background: #fff;
+            border-radius: 14px;
             border: 1px solid var(--border);
-            border-radius: 10px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
         }
 
         .item-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(22, 72, 59, 0.07);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
         }
 
-        .item-thumb {
-            height: 150px;
+        .item-card-img {
+            height: 180px;
+            background: #f1f5f3;
             position: relative;
-            background: #eef3ef;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .item-thumb img {
+        .item-card-img img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .status-badge {
+        .badge-category {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .status-badge.available {
-            background: var(--primary);
-            color: #fff;
-        }
-
-        .status-badge.completed {
-            background: #6b7d75;
-            color: #fff;
-        }
-
-        .category-chip {
-            position: absolute;
-            bottom: 8px;
-            left: 10px;
+            top: 12px;
+            left: 12px;
             background: rgba(255, 255, 255, 0.92);
-            padding: 2px 7px;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: 600;
+            backdrop-filter: blur(4px);
             color: var(--primary-dark);
-        }
-
-        .item-info {
-            padding: 14px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .item-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin: 0 0 6px;
-        }
-
-        .item-snippet {
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-bottom: 10px;
-            flex: 1;
-            line-height: 1.4;
-        }
-
-        .meta-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-bottom: 12px;
-        }
-
-        .pill-tag {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: #f1f5f2;
-            color: #3b5045;
-        }
-
-        .pill-pending {
-            background: #fff5eb;
-            color: #b85b40;
-            border: 1px solid #fedecf;
-        }
-
-        .item-actions {
-            border-top: 1px solid #eef2ee;
-            padding-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-card {
-            border: 1px solid var(--border);
-            background: #fff;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 0.78rem;
             font-weight: 600;
-            cursor: pointer;
-            color: var(--dark);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        .btn-card:hover {
+        .badge-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: capitalize;
+        }
+
+        .badge-status.available {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-status.reserved {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-status.claimed {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .btn-accent:hover {
+            background-color: var(--accent-dark);
+            border-color: var(--accent-dark);
+            color: #ffffff;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary);
             border-color: var(--primary);
-            color: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
         }
 
-        .btn-card-del {
-            color: #c9523b;
-            border-color: #f7deda;
-        }
-
-        .btn-card-del:hover {
-            background: #fff5f3;
-            color: #c9523b;
-        }
-
-        /* Edit Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(23, 38, 32, 0.6);
-            backdrop-filter: blur(2px);
-            z-index: 1100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .modal-window {
-            background: #fff;
-            border-radius: 12px;
-            width: min(540px, 100%);
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.25);
-        }
-
-        .modal-header-custom {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header-custom h4 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .modal-body-custom {
-            padding: 20px;
-        }
-
-        .modal-footer-custom {
-            padding: 14px 20px;
-            border-top: 1px solid var(--border);
-            background: #fbfdfb;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        /* Toast */
-        .toast-bubble {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary-dark);
-            color: #fff;
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-size: 0.88rem;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            z-index: 2000;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        .btn-primary-custom:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: #ffffff;
         }
     </style>
 </head>
 
 <body>
 
-<!-- Navbar -->
-<header class="app-navbar">
-    <a class="navbar-brand-custom" th:href="@{/dashboard}">
-        <div class="brand-logo-pill">SH</div>
-        <span>ShareHub</span>
-    </a>
-
-    <div class="nav-actions">
-        <a th:href="@{/resources}" class="nav-link-custom d-none d-sm-inline-block">
-            Explore Resources
-        </a>
-
-        <a th:href="@{/profile}" class="nav-link-custom d-none d-sm-inline-block">
-            Profile
-        </a>
-
-        <div class="user-chip">
-            <div class="user-chip-avatar"
-                 sec:authentication="name"
-                 th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">
-                D
-            </div>
-
-            <span class="d-none d-md-inline" sec:authentication="name">
-                Donor
+    <!-- Main Navigation Bar -->
+    <header class="app-navbar">
+        <a th:href="@{/dashboard}" class="navbar-brand-custom">
+            <i class="bi bi-box2-heart-fill text-warning fs-4"></i>
+            <span>ShareHub</span>
+            
+            <!-- Dynamic Thymeleaf & Spring Security Role Badges -->
+            <span sec:authorize="hasRole('DONOR') or !hasRole('RECIPIENT')" class="brand-badge role-pill-donor">
+                <i class="bi bi-heart-fill me-1"></i> Donor
             </span>
-        </div>
-
-        <button type="button" id="logoutBtn" class="btn-nav-logout">
-            <i class="bi bi-box-arrow-right"></i>
-            <span class="d-none d-sm-inline">Logout</span>
-        </button>
-    </div>
-</header>
-
-<div class="dashboard-container">
-
-    <!-- Top Headline -->
-    <div class="dashboard-head">
-        <div>
-            <h1>Donor Dashboard</h1>
-            <p>Share surplus goods with your community in just a few clicks.</p>
-        </div>
-    </div>
-
-    <!-- Live KPI Summary -->
-    <div class="stats-deck">
-
-        <div class="stat-box">
-            <div>
-                <div class="stat-label">Total Shared</div>
-                <div class="stat-value" id="kpiTotal">0</div>
-            </div>
-
-            <div class="stat-icon icon-green">
-                <i class="bi bi-box2-heart-fill"></i>
-            </div>
-        </div>
-
-        <div class="stat-box">
-            <div>
-                <div class="stat-label">Available Now</div>
-                <div class="stat-value" id="kpiAvailable">0</div>
-            </div>
-
-            <div class="stat-icon icon-coral">
-                <i class="bi bi-check2-circle"></i>
-            </div>
-        </div>
-
-        <div class="stat-box">
-            <div>
-                <div class="stat-label">Completed</div>
-                <div class="stat-value" id="kpiCompleted">0</div>
-            </div>
-
-            <div class="stat-icon icon-blue">
-                <i class="bi bi-gift-fill"></i>
-            </div>
-        </div>
-
-        <div class="stat-box">
-            <div>
-                <div class="stat-label">Impact (People)</div>
-                <div class="stat-value" id="kpiImpact">0</div>
-            </div>
-
-            <div class="stat-icon icon-gold">
-                <i class="bi bi-people-fill"></i>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Main Workspace -->
-    <div class="workspace-grid">
-
-        <!-- POST DONATION CARD -->
-        <div class="post-card">
-
-            <div class="post-card-header">
-                <h2>
-                    <i class="bi bi-plus-circle-fill"></i>
-                    Post a Donation
-                </h2>
-
-                <span class="post-header-badge">
-                    Quick Share
-                </span>
-            </div>
-
-            <div class="post-card-body">
-
-                <form id="donationForm">
-
-                    <!-- 1. Optional Photo Upload -->
-                    <div class="mb-3">
-
-                        <label class="field-label">
-                            1. Item Photo
-                            <span class="text-muted">(optional)</span>
-                        </label>
-
-                        <input type="file"
-                               id="imageInput"
-                               accept="image/*"
-                               style="display: none;">
-
-                        <div class="upload-dropzone" id="dropzone">
-
-                            <i class="bi bi-camera-fill"></i>
-
-                            <div class="upload-title">
-                                Click or drop photo here
-                            </div>
-
-                            <p class="upload-sub">
-                                JPG, PNG, WebP supported
-                            </p>
-
-                        </div>
-
-                        <!-- Live Preview -->
-                        <div class="preview-box" id="previewContainer">
-
-                            <img id="previewImage"
-                                 src=""
-                                 alt="Preview">
-
-                            <div class="preview-bar">
-
-                                <button type="button"
-                                        class="btn-preview-action"
-                                        id="btnChangePhoto">
-
-                                    <i class="bi bi-arrow-repeat"></i>
-                                    Change
-
-                                </button>
-
-                                <button type="button"
-                                        class="btn-preview-action btn-preview-delete"
-                                        id="btnRemovePhoto">
-
-                                    <i class="bi bi-trash"></i>
-                                    Remove
-
-                                </button>
-
-                            </div>
-                        </div>
-
-                        <div class="text-end mt-1">
-
-                            <button type="button"
-                                    class="btn btn-link p-0 text-decoration-none text-muted"
-                                    id="btnToggleUrl"
-                                    style="font-size: 0.76rem;">
-
-                                Or paste image URL
-
-                            </button>
-
-                        </div>
-
-                        <div id="urlBox"
-                             class="mt-1"
-                             style="display: none;">
-
-                            <div class="input-group input-group-sm">
-
-                                <input type="url"
-                                       id="imageUrlField"
-                                       class="form-control"
-                                       placeholder="https://example.com/item.jpg">
-
-                                <button class="btn btn-outline-secondary"
-                                        type="button"
-                                        id="btnApplyImageUrl">
-                                    Apply
-                                </button>
-
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- 2. Basic Information (Optional) -->
-                    <div class="mb-3">
-
-                        <label for="itemTitle"
-                               class="field-label">
-
-                            2. What are you sharing?
-                            <span class="text-muted">(optional)</span>
-
-                        </label>
-
-                        <input type="text"
-                               id="itemTitle"
-                               class="field-input"
-                               placeholder="e.g. Warm Winter Jacket (Size L)">
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label for="itemCategory"
-                               class="field-label">
-
-                            3. Category
-                            <span class="text-muted">(optional)</span>
-
-                        </label>
-
-                        <select id="itemCategory"
-                                class="field-select">
-
-                            <option value="" selected>
-                                Select a category
-                            </option>
-
-                            <option value="Clothing & Apparel">
-                                👕 Clothing & Apparel
-                            </option>
-
-                            <option value="Food & Groceries">
-                                🥫 Food & Groceries
-                            </option>
-
-                            <option value="Books & Education">
-                                📚 Books & Education
-                            </option>
-
-                            <option value="Home & Furniture">
-                                🪑 Home & Furniture
-                            </option>
-
-                            <option value="Electronics & Tech">
-                                💻 Electronics & Tech
-                            </option>
-
-                            <option value="Toys & Children">
-                                🧸 Toys & Children
-                            </option>
-
-                            <option value="Healthcare & Hygiene">
-                                🩹 Healthcare & Hygiene
-                            </option>
-
-                            <option value="Other Essentials">
-                                📦 Other Essentials
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <!-- 3. Progressive Disclosure -->
-                    <div>
-
-                        <button type="button"
-                                class="toggle-details-btn"
-                                id="btnToggleDetails">
-
-                            <i class="bi bi-sliders"></i>
-
-                            <span id="toggleText">
-                                + Add more details (optional)
-                            </span>
-
-                        </button>
-
-                        <div class="details-collapsed-box"
-                             id="detailsSection">
-
-                            <small>
-                                You can leave these blank now and complete or update
-                                them anytime from your dashboard cards!
-                            </small>
-
-                            <div class="row g-2 mb-2">
-
-                                <div class="col-6">
-
-                                    <label class="field-label"
-                                           style="font-size: 0.74rem;">
-                                        Condition
-                                    </label>
-
-                                    <select id="itemCondition"
-                                            class="field-select py-1">
-
-                                        <option value="Like New">
-                                            ✨ Like New
-                                        </option>
-
-                                        <option value="Good" selected>
-                                            👍 Good
-                                        </option>
-
-                                        <option value="Fair">
-                                            👌 Fair / Usable
-                                        </option>
-
-                                        <option value="Brand New">
-                                            🏷️ Brand New
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div class="col-6">
-
-                                    <label class="field-label"
-                                           style="font-size: 0.74rem;">
-                                        Quantity
-                                    </label>
-
-                                    <input type="number"
-                                           id="itemQty"
-                                           class="field-input py-1"
-                                           min="1"
-                                           value="1">
-
-                                </div>
-
-                            </div>
-
-                            <div class="mb-2">
-
-                                <label class="field-label"
-                                       style="font-size: 0.74rem;">
-                                    Pickup Location / Area
-                                </label>
-
-                                <input type="text"
-                                       id="itemLocation"
-                                       class="field-input py-1"
-                                       placeholder="e.g. Block B or Community Hall">
-
-                            </div>
-
-                            <div>
-
-                                <label class="field-label"
-                                       style="font-size: 0.74rem;">
-                                    Description / Notes
-                                </label>
-
-                                <textarea id="itemDesc"
-                                          class="field-input py-1"
-                                          rows="2"
-                                          placeholder="Mention size, pickup times, etc."></textarea>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Post Button -->
-                    <button type="submit"
-                            class="btn-post-now mt-2">
-
-                        <i class="bi bi-gift-fill"></i>
-                        Post Donation
-
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
-        <!-- SHARED ITEMS FEED -->
-        <div class="feed-card">
-
-            <div class="feed-header">
-
-                <h3>
-                    <i class="bi bi-grid-fill text-primary"></i>
-                    My Shared Items
-                </h3>
-
-                <div class="feed-filters">
-
-                    <button type="button"
-                            class="filter-btn active"
-                            data-filter="all">
-                        All
-                    </button>
-
-                    <button type="button"
-                            class="filter-btn"
-                            data-filter="AVAILABLE">
-                        Available
-                    </button>
-
-                    <button type="button"
-                            class="filter-btn"
-                            data-filter="COMPLETED">
-                        Completed
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="feed-body">
-
-                <!-- Search -->
-                <div class="search-row d-flex justify-content-between align-items-center">
-
-                    <div class="search-box">
-
-                        <i class="bi bi-search"></i>
-
-                        <input type="text"
-                               id="searchInput"
-                               placeholder="Search your items...">
-
-                    </div>
-
-                    <small class="text-muted"
-                           id="countSummary">
-                        Showing 0 items
-                    </small>
-
-                </div>
-
-                <!-- Cards Grid -->
-                <div class="items-grid"
-                     id="itemsGrid">
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyView"
-                     class="text-center py-5 text-muted"
-                     style="display: none;">
-
-                    <i class="bi bi-inbox fs-1 mb-2 d-block"></i>
-
-                    <p class="mb-0">
-                        No donations found in this filter.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- In-Page Edit Modal -->
-<div class="modal-overlay" id="editModal">
-
-    <div class="modal-window">
-
-        <div class="modal-header-custom">
-
-            <h4>
-                <i class="bi bi-pencil-square text-primary me-2"></i>
-                Edit Item Details
-            </h4>
-
-            <button type="button"
-                    class="btn-close"
-                    id="btnCloseModal">
+            <span sec:authorize="hasRole('RECIPIENT')" class="brand-badge role-pill-recipient">
+                <i class="bi bi-gift-fill me-1"></i> Recipient
+            </span>
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-white-50 d-none d-md-inline" style="font-size: 0.9rem;">
+                Welcome, <strong class="text-white" th:text="${userName} ?: ${#authentication.name}">User</strong>
+            </span>
+            <button id="logoutBtn" type="button" class="btn btn-outline-light btn-sm px-3 rounded-pill">
+                <i class="bi bi-box-arrow-right me-1"></i> Sign Out
             </button>
-
         </div>
-
-        <div class="modal-body-custom">
-
-            <form id="editForm">
-
-                <input type="hidden"
-                       id="editId">
-
-                <div class="mb-3 text-center">
-
-                    <img id="modalImg"
-                         src=""
-                         alt="Item"
-                         style="height: 120px; width: 100%; object-fit: cover; border-radius: 8px;">
-
-                    <div class="mt-2">
-
-                        <input type="file"
-                               id="modalFileInput"
-                               accept="image/*"
-                               style="display: none;">
-
-                        <button type="button"
-                                class="btn btn-sm btn-outline-secondary"
-                                onclick="document.getElementById('modalFileInput').click();">
-
-                            Change Photo
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-                <div class="mb-2">
-
-                    <label class="field-label">
-                        Title
-                    </label>
-
-                    <input type="text"
-                           id="modalTitle"
-                           class="field-input">
-
-                </div>
-
-                <div class="row g-2 mb-2">
-
-                    <div class="col-6">
-
-                        <label class="field-label">
-                            Category
-                        </label>
-
-                        <select id="modalCategory"
-                                class="field-select">
-
-                            <option value="">
-                                Uncategorized
-                            </option>
-
-                            <option value="Clothing & Apparel">
-                                👕 Clothing & Apparel
-                            </option>
-
-                            <option value="Food & Groceries">
-                                🥫 Food & Groceries
-                            </option>
-
-                            <option value="Books & Education">
-                                📚 Books & Education
-                            </option>
-
-                            <option value="Home & Furniture">
-                                🪑 Home & Furniture
-                            </option>
-
-                            <option value="Electronics & Tech">
-                                💻 Electronics & Tech
-                            </option>
-
-                            <option value="Toys & Children">
-                                🧸 Toys & Children
-                            </option>
-
-                            <option value="Healthcare & Hygiene">
-                                🩹 Healthcare & Hygiene
-                            </option>
-
-                            <option value="Other Essentials">
-                                📦 Other Essentials
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-6">
-
-                        <label class="field-label">
-                            Status
-                        </label>
-
-                        <select id="modalStatus"
-                                class="field-select">
-
-                            <option value="AVAILABLE">
-                                Available
-                            </option>
-
-                            <option value="COMPLETED">
-                                Completed
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-                <div class="row g-2 mb-2">
-
-                    <div class="col-6">
-
-                        <label class="field-label">
-                            Condition
-                        </label>
-
-                        <select id="modalCondition"
-                                class="field-select">
-
-                            <option value="Brand New">
-                                Brand New
-                            </option>
-
-                            <option value="Like New">
-                                Like New
-                            </option>
-
-                            <option value="Good">
-                                Good
-                            </option>
-
-                            <option value="Fair">
-                                Fair / Usable
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-6">
-
-                        <label class="field-label">
-                            Quantity
-                        </label>
-
-                        <input type="number"
-                               id="modalQty"
-                               class="field-input"
-                               min="1"
-                               value="1">
-
-                    </div>
-
-                </div>
-
-                <div class="mb-2">
-
-                    <label class="field-label">
-                        Pickup Location / Area
-                    </label>
-
-                    <input type="text"
-                           id="modalLocation"
-                           class="field-input"
-                           placeholder="e.g. Specific address or drop point">
-
-                </div>
-
-                <div class="mb-3">
-
-                    <label class="field-label">
-                        Description / Instructions
-                    </label>
-
-                    <textarea id="modalDesc"
-                              class="field-input"
-                              rows="2"
-                              placeholder="Extra notes for recipients..."></textarea>
-
-                </div>
-
-                <div class="modal-footer-custom px-0 pb-0">
-
-                    <button type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            id="btnCancelModal">
-                        Cancel
-                    </button>
-
-                    <button type="submit"
-                            class="btn btn-sm btn-success px-3">
-                        Save Changes
-                    </button>
-
-                </div>
-
-            </form>
-
+    </header>
+
+    <!-- Global Alert Messages (from Spring Model / RedirectAttributes) -->
+    <div class="container-xl pt-3">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}">Operation successful!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}">An error occurred.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     </div>
 
-</div>
+    <!-- ======================================================= -->
+    <!-- 1. DONOR DASHBOARD VIEW (Rendered for DONOR role)       -->
+    <!-- ======================================================= -->
+    <div sec:authorize="hasRole('DONOR') or !hasRole('RECIPIENT')">
+        
+        <!-- Welcome Hero -->
+        <section class="py-4 bg-white border-bottom">
+            <div class="container-xl">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h2 class="fw-bold mb-1" style="font-family: 'Playfair Display', serif; color: var(--primary-dark);">
+                            Donor Workspace
+                        </h2>
+                        <p class="text-muted mb-0">Share excess resources, manage your active listings, and make a direct impact.</p>
+                    </div>
+                    <a href="#postDonationSection" class="btn btn-accent rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-plus-circle-fill me-2"></i> Post New Donation
+                    </a>
+                </div>
+            </div>
+        </section>
 
-<!-- Floating Toast -->
-<div class="toast-bubble"
-     id="toastBubble">
+        <main class="container-xl py-4">
 
-    <i class="bi bi-check-circle-fill text-success"></i>
+            <!-- Donor KPI Stats with dynamic Thymeleaf model bindings & safe defaults -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${totalDonationsCount} ?: '0'" id="donorTotalCount">0</div>
+                            <div class="stat-label">Total Shared Items</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon accent">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${activeDonationsCount} ?: '0'" id="donorActiveCount">0</div>
+                            <div class="stat-label">Active & Available</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${reservedDonationsCount} ?: '0'" id="donorReservedCount">0</div>
+                            <div class="stat-label">Reserved by Members</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${livesImpactedCount} ?: '0'" id="donorPeopleHelped">0</div>
+                            <div class="stat-label">Lives Impacted</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <span id="toastMsg">
-        Updated successfully
-    </span>
+            <!-- Focused Post Donation Area -->
+            <div class="row mb-5" id="postDonationSection">
+                <div class="col-12">
+                    <div class="post-donation-card">
+                        <div class="post-donation-header">
+                            <h5>
+                                <i class="bi bi-stars"></i> Post a Donation
+                            </h5>
+                            <span class="badge bg-white text-dark px-3 py-1 rounded-pill fw-semibold" style="font-size: 0.78rem;">
+                                Direct Community Share
+                            </span>
+                        </div>
 
-</div>
+                        <div class="p-4 p-md-4">
+                            <form id="donorPostForm" th:action="@{/api/donations}" method="post" enctype="multipart/form-data" onsubmit="handleDonorSubmit(event)">
+                                <div class="row g-4">
+                                    
+                                    <!-- Photo Upload Zone -->
+                                    <div class="col-lg-5">
+                                        <label class="form-label fw-bold text-dark mb-2">
+                                            <i class="bi bi-camera-fill text-danger me-1"></i> Item Photos
+                                        </label>
+                                        <div class="photo-dropzone" id="donorPhotoDropzone" onclick="document.getElementById('donorPhotoInput').click()">
+                                            <input type="file" id="donorPhotoInput" name="imageFiles" accept="image/*" multiple style="display: none;" onchange="handleDonorPhotoSelect(event)">
+                                            <div class="py-2">
+                                                <i class="bi bi-cloud-arrow-up-fill fs-1 text-danger"></i>
+                                                <div class="fw-bold mt-2 text-dark">Click to upload or drag photos here</div>
+                                                <small class="text-muted d-block mt-1">Supports JPG, PNG, WEBP (Max 5MB)</small>
+                                            </div>
+                                        </div>
+                                        <div class="photo-preview-grid" id="donorPhotoPreviewGrid"></div>
+                                    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+                                    <!-- Required Essential Info -->
+                                    <div class="col-lg-7">
+                                        <div class="row g-3">
+                                            <div class="col-md-7">
+                                                <label class="form-label fw-bold text-dark">
+                                                    Item Title <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text" name="title" class="form-control form-control-lg border-2" id="donorItemTitle" placeholder="e.g. Winter Jacket, Study Table, Rice Bag" required>
+                                            </div>
 
-<script th:src="@{/js/main.js}"></script>
+                                            <div class="col-md-5">
+                                                <label class="form-label fw-bold text-dark">
+                                                    Category <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="category" class="form-select form-select-lg border-2" id="donorItemCategory" required>
+                                                    <option value="" disabled selected>Select Category</option>
+                                                    <option value="Food & Groceries">🍲 Food & Groceries</option>
+                                                    <option value="Clothing">👕 Clothing & Footwear</option>
+                                                    <option value="Books & Education">📚 Books & Education</option>
+                                                    <option value="Electronics">💻 Electronics & Gadgets</option>
+                                                    <option value="Home & Furniture">🪑 Home & Furniture</option>
+                                                    <option value="Health & Medical">💊 Health & Medical</option>
+                                                    <option value="Toys & Kids">🧸 Toys & Kids</option>
+                                                    <option value="Other">📦 Other Necessities</option>
+                                                </select>
+                                            </div>
 
-<script>
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold text-dark">
+                                                    Short Description <span class="text-danger">*</span>
+                                                </label>
+                                                <textarea name="description" class="form-control" id="donorItemDescription" rows="2" placeholder="Briefly describe the condition and why it's ready for pickup..." required></textarea>
+                                            </div>
 
-    const STORAGE_KEY = 'sharehub_donor_donations';
+                                            <!-- Collapsible Extra Details -->
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center justify-content-between p-2 px-3 rounded-3" style="background: #fdf2ee; border: 1px dashed var(--accent);">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="bi bi-sliders text-danger"></i>
+                                                        <span class="small fw-semibold text-dark">Add Optional Details (Quantity, Pickup Location, Condition)</span>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#donorExtraDetails">
+                                                        <i class="bi bi-chevron-down"></i> Toggle
+                                                    </button>
+                                                </div>
 
-    let currentImgData = null;
-    let modalImgData = null;
-    let filterStatus = 'all';
+                                                <div class="collapse mt-3" id="donorExtraDetails">
+                                                    <div class="card card-body bg-light border-0 p-3">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-4">
+                                                                <label class="form-label small fw-bold">Quantity / Units</label>
+                                                                <input type="text" name="quantity" class="form-control form-control-sm" id="donorItemQuantity" placeholder="e.g. 2 bags, 1 unit">
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label class="form-label small fw-bold">Condition</label>
+                                                                <select name="condition" class="form-select form-select-sm" id="donorItemCondition">
+                                                                    <option value="New / Unopened">Brand New</option>
+                                                                    <option value="Gently Used" selected>Gently Used (Like New)</option>
+                                                                    <option value="Used / Fair">Functional / Fair</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label class="form-label small fw-bold">Pickup Location / City</label>
+                                                                <input type="text" name="location" class="form-control form-control-sm" id="donorItemLocation" placeholder="e.g. Downtown / West End">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <!-- Form Action -->
+                                            <div class="col-12 pt-2 d-flex justify-content-end gap-2">
+                                                <button type="reset" class="btn btn-light px-4 rounded-pill" onclick="resetDonorPhotoList()">
+                                                    Clear
+                                                </button>
+                                                <button type="submit" class="btn btn-accent px-5 py-2 rounded-pill fw-bold shadow-sm">
+                                                    <i class="bi bi-check2-circle me-1"></i> Post Donation Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
 
-    // Seed realistic sample items if user hasn't posted yet
-    function getDonations() {
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        const stored = localStorage.getItem(STORAGE_KEY);
+            <!-- Donor's Published Items Section -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <h4 class="fw-bold mb-1" style="font-family: 'Playfair Display', serif; color: var(--primary-dark);">
+                        My Shared Donations
+                    </h4>
+                    <p class="text-muted small mb-0">Manage availability, edit listings, and coordinate pickups.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <input type="text" id="donorSearchInput" class="form-control form-control-sm rounded-pill" placeholder="Search my items..." oninput="filterDonorFeed()">
+                    <select id="donorCategoryFilter" class="form-select form-select-sm rounded-pill" onchange="filterDonorFeed()">
+                        <option value="ALL">All Categories</option>
+                        <option value="Food & Groceries">Food & Groceries</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Books & Education">Books</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Home & Furniture">Furniture</option>
+                    </select>
+                </div>
+            </div>
 
-        if (!stored) {
+            <!-- Server-Side Thymeleaf Loop (when 'myDonations' model is supplied by Spring Boot) -->
+            <div th:if="${myDonations != null and !myDonations.isEmpty()}" class="row g-4 mb-4" id="donorServerGrid">
+                <div class="col-md-6 col-lg-4" th:each="item : ${myDonations}">
+                    <div class="item-card">
+                        <div class="item-card-img">
+                            <img th:src="${item.image ?: (item.imageUrl ?: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=60')}" th:alt="${item.title}">
+                            <span class="badge-category" th:text="${item.category}">Category</span>
+                            <span class="badge-status" th:classappend="${#strings.toLowerCase(item.status)}" th:text="${item.status}">Available</span>
+                        </div>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <h6 class="fw-bold mb-1 text-dark" th:text="${item.title}">Item Title</h6>
+                            <p class="text-muted small mb-2 flex-grow-1" th:text="${item.description}">Description</p>
+                            <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
+                                <span><i class="bi bi-box me-1"></i><span th:text="${item.quantity ?: '1 unit'}">1 unit</span></span>
+                                <span><i class="bi bi-geo-alt me-1"></i><span th:text="${item.location ?: 'Local'}">Local</span></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary flex-grow-1 rounded-pill" th:onclick="'openDonorEditModal(\'' + ${item.id} + '\')'">
+                                    <i class="bi bi-pencil me-1"></i> Edit
+                                </button>
+                                <button class="btn btn-sm rounded-pill" th:classappend="${item.status == 'AVAILABLE' ? 'btn-outline-warning' : 'btn-outline-success'}" th:onclick="'toggleItemStatus(\'' + ${item.id} + '\')'" th:text="${item.status == 'AVAILABLE' ? 'Mark Reserved' : 'Mark Available'}">
+                                    Toggle
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-circle" th:onclick="'deleteDonorItem(\'' + ${item.id} + '\')'">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            const seed = [
+            <!-- Client Feed Grid (Interactive sync fallback) -->
+            <div class="row g-4" id="donorItemsGrid"></div>
 
-                {
-                    id: 1711200001,
-                    title: "Winter Fleece Jacket (Size M)",
-                    category: "Clothing & Apparel",
-                    imageUrl: "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=600&q=80",
-                    condition: "Like New",
-                    quantity: 1,
-                    location: "Green Road, Sector 4",
-                    description: "Worn twice, freshly packed. Warm and clean.",
-                    status: "AVAILABLE",
-                    hasFullDetails: true
-                },
+            <!-- Empty State for Donor -->
+            <div id="donorEmptyState" class="text-center py-5 d-none">
+                <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
+                    <i class="bi bi-gift text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 fw-bold text-dark">No Donations Posted Yet</h5>
+                    <p class="text-muted small mb-3">Use the Post a Donation box above to share items with the community.</p>
+                    <a href="#postDonationSection" class="btn btn-accent btn-sm rounded-pill px-3">
+                        <i class="bi bi-plus me-1"></i> Post First Item
+                    </a>
+                </div>
+            </div>
 
-                {
-                    id: 1711200002,
-                    title: "Children's Illustrated Science Encyclopedia",
-                    category: "Books & Education",
-                    imageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
-                    condition: "Good",
-                    quantity: 3,
-                    location: "",
-                    description: "",
-                    status: "AVAILABLE",
-                    hasFullDetails: false
-                },
+        </main>
+    </div>
 
-                {
-                    id: 1711200003,
-                    title: "Rice & Lentils Pantry Pack",
-                    category: "Food & Groceries",
-                    imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80",
-                    condition: "Brand New",
-                    quantity: 5,
-                    location: "North Community Hall",
-                    description: "Sealed 5kg non-perishable staples.",
-                    status: "COMPLETED",
-                    hasFullDetails: true
-                }
+    <!-- ======================================================= -->
+    <!-- 2. RECIPIENT DASHBOARD VIEW (Rendered for RECIPIENT)    -->
+    <!-- ======================================================= -->
+    <div sec:authorize="hasRole('RECIPIENT')">
 
-            ];
+        <!-- Recipient Welcome Banner -->
+        <section class="py-4 bg-white border-bottom">
+            <div class="container-xl">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h2 class="fw-bold mb-1" style="font-family: 'Playfair Display', serif; color: var(--primary-dark);">
+                            Community Resources & Aid
+                        </h2>
+                        <p class="text-muted mb-0">Browse freely donated essentials from donors in your community and request what you need.</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+                            <i class="bi bi-shield-check me-1"></i> 100% Free Community Aid
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(seed)
-            );
+        <main class="container-xl py-4">
 
-            return seed;
+            <!-- Recipient Metric Cards with dynamic Thymeleaf bindings -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-lg-4">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="bi bi-grid-fill"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${availableItemsCount} ?: '0'" id="recipientAvailableCount">0</div>
+                            <div class="stat-label">Available Items to Claim</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${activeRequestsCount} ?: '0'" id="recipientPendingCount">0</div>
+                            <div class="stat-label">My Active Requests</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="bi bi-check2-circle"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" th:text="${itemsReceivedCount} ?: '0'" id="recipientReceivedCount">0</div>
+                            <div class="stat-label">Items Received</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search & Filter Bar -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="recipientSearchInput" class="form-control bg-light border-start-0" placeholder="Search available items (e.g. Rice, Blanket, Books)..." oninput="renderRecipientFeed()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-2 flex-wrap justify-content-md-end">
+                            <select id="recipientCategoryFilter" class="form-select form-select-sm rounded-pill w-auto" onchange="renderRecipientFeed()">
+                                <option value="ALL">All Categories</option>
+                                <option value="Food & Groceries">Food & Groceries</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Books & Education">Books & Education</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Home & Furniture">Furniture</option>
+                            </select>
+                            <select id="recipientConditionFilter" class="form-select form-select-sm rounded-pill w-auto" onchange="renderRecipientFeed()">
+                                <option value="ALL">All Conditions</option>
+                                <option value="New / Unopened">Brand New</option>
+                                <option value="Gently Used">Gently Used</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs for Recipient -->
+            <ul class="nav nav-pills mb-4" id="recipientTab" role="tablist">
+                <li class="nav-item me-2" role="presentation">
+                    <button class="nav-link active rounded-pill px-4" id="browse-tab" data-bs-toggle="pill" data-bs-target="#browse-items" type="button" role="tab">
+                        <i class="bi bi-shop me-1"></i> Browse Available Items
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4" id="my-requests-tab" data-bs-toggle="pill" data-bs-target="#my-requests" type="button" role="tab" onclick="renderRecipientRequests()">
+                        <i class="bi bi-card-checklist me-1"></i> My Requested Items (<span id="tabRequestCount" th:text="${myRequestsCount} ?: '0'">0</span>)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="recipientTabContent">
+                
+                <!-- Tab 1: Browse Available Items -->
+                <div class="tab-pane fade show active" id="browse-items" role="tabpanel">
+                    
+                    <!-- Server-side loop when 'availableDonations' is passed by Spring Boot controller -->
+                    <div th:if="${availableDonations != null and !availableDonations.isEmpty()}" class="row g-4 mb-4" id="recipientServerGrid">
+                        <div class="col-md-6 col-lg-4" th:each="item : ${availableDonations}">
+                            <div class="item-card">
+                                <div class="item-card-img">
+                                    <img th:src="${item.image ?: (item.imageUrl ?: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=60')}" th:alt="${item.title}">
+                                    <span class="badge-category" th:text="${item.category}">Category</span>
+                                    <span class="badge-status available">Ready for Pickup</span>
+                                </div>
+                                <div class="p-3 d-flex flex-column flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h6 class="fw-bold mb-0 text-dark" th:text="${item.title}">Item Title</h6>
+                                        <span class="badge bg-light text-secondary border" th:text="${item.condition ?: 'Good'}">Good</span>
+                                    </div>
+                                    <p class="text-muted small mb-3 flex-grow-1" th:text="${item.description}">Description</p>
+                                    <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
+                                        <span><i class="bi bi-geo-alt me-1 text-danger"></i><span th:text="${item.location ?: 'Local Pickup'}">Local</span></span>
+                                        <span><i class="bi bi-box me-1"></i><span th:text="${item.quantity ?: '1 unit'}">1 available</span></span>
+                                    </div>
+                                    <button class="btn btn-primary-custom w-100 rounded-pill fw-bold" th:onclick="'openRequestModal(\'' + ${item.id} + '\', \'' + ${#strings.escapeJavaScript(item.title)} + '\', \'' + ${item.category} + '\')'">
+                                        <i class="bi bi-hand-index-thumb me-1"></i> Request This Item
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Grid (Interactive sync fallback) -->
+                    <div class="row g-4" id="recipientItemsGrid"></div>
+
+                    <div id="recipientEmptyState" class="text-center py-5 d-none">
+                        <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
+                            <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 fw-bold text-dark">No Items Found</h5>
+                            <p class="text-muted small mb-0">Try changing your search terms or category filter.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: My Requests -->
+                <div class="tab-pane fade" id="my-requests" role="tabpanel">
+                    <div class="row g-4" id="recipientRequestsGrid"></div>
+
+                    <div id="recipientRequestsEmptyState" class="text-center py-5 d-none">
+                        <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 fw-bold text-dark">No Active Requests</h5>
+                            <p class="text-muted small mb-3">Browse available community items and click "Request Item" to claim.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Edit Item Modal (For Donors) -->
+    <div class="modal fade" id="donorEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i> Edit Donation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="donorEditForm" onsubmit="saveDonorEdit(event)">
+                        <input type="hidden" id="editItemId">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Title</label>
+                            <input type="text" class="form-control" id="editItemTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Category</label>
+                            <select class="form-select" id="editItemCategory" required>
+                                <option value="Food & Groceries">Food & Groceries</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Books & Education">Books & Education</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Home & Furniture">Home & Furniture</option>
+                                <option value="Health & Medical">Health & Medical</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Description</label>
+                            <textarea class="form-control" id="editItemDesc" rows="3" required></textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Status</label>
+                                <select class="form-select form-select-sm" id="editItemStatus">
+                                    <option value="AVAILABLE">Available</option>
+                                    <option value="RESERVED">Reserved</option>
+                                    <option value="CLAIMED">Completed / Claimed</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Quantity</label>
+                                <input type="text" class="form-control form-control-sm" id="editItemQty">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-4">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Confirmation Modal (For Recipients) -->
+    <div class="modal fade" id="recipientRequestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header" style="background: var(--primary); color: #fff;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-gift-fill me-2"></i> Confirm Item Request</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="requestModalItemId">
+                    <p class="mb-2">You are requesting:</p>
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <h6 class="fw-bold mb-1" id="requestModalItemTitle">Item Title</h6>
+                        <small class="text-muted" id="requestModalItemCategory">Category</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Notes for Donor (Optional)</label>
+                        <textarea class="form-control" id="requestNotes" rows="2" placeholder="e.g. I can pick this up tomorrow at 4 PM..."></textarea>
+                    </div>
+                    <div class="alert alert-info small py-2 mb-0">
+                        <i class="bi bi-info-circle-fill me-1"></i> Once confirmed, the donor will be notified to coordinate pickup.
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom rounded-pill px-4" onclick="submitRecipientRequest()">Confirm Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Global Application JS (Handles Logout & API auth calls) -->
+    <script th:src="@{/js/main.js}"></script>
+
+    <!-- Client-Side State & Dynamic Interaction Handler -->
+    <script>
+        const STORAGE_KEY = 'sharehub_items_db';
+        const REQUESTS_KEY = 'sharehub_recipient_requests';
+
+        let donorPhotos = [];
+
+        const defaultSampleItems = [
+            {
+                id: 'item-101',
+                title: 'Warm Winter Jacket (Size L)',
+                category: 'Clothing',
+                description: 'Clean, warm down jacket in excellent condition. Ideal for upcoming cold months.',
+                quantity: '1 jacket',
+                condition: 'Gently Used',
+                location: 'Downtown Center',
+                status: 'AVAILABLE',
+                image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop&q=60',
+                date: '2026-09-24'
+            },
+            {
+                id: 'item-102',
+                title: 'High School & College Calculus Books',
+                category: 'Books & Education',
+                description: 'Complete calculus and linear algebra textbook set with solved problem sets.',
+                quantity: '3 books',
+                condition: 'Gently Used',
+                location: 'North Campus',
+                status: 'AVAILABLE',
+                image: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=500&auto=format&fit=crop&q=60',
+                date: '2026-09-23'
+            },
+            {
+                id: 'item-103',
+                title: 'Packaged Organic Oats & Grains (5kg)',
+                category: 'Food & Groceries',
+                description: 'Sealed pantry staples, healthy grains, and pasta ready for collection.',
+                quantity: '5 packs',
+                condition: 'New / Unopened',
+                location: 'East District',
+                status: 'AVAILABLE',
+                image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=60',
+                date: '2026-09-22'
+            }
+        ];
+
+        function getStoredItems() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSampleItems));
+                return defaultSampleItems;
+            }
+            try {
+                return JSON.parse(raw);
+            } catch(e) {
+                return defaultSampleItems;
+            }
         }
 
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            return [];
-        }
-    }
-
-
-    function saveDonations(items) {
-
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(items)
-        );
-
-        renderList();
-        updateStats();
-    }
-
-
-    function notify(msg) {
-
-        const t = document.getElementById('toastBubble');
-
-        document.getElementById('toastMsg').innerText = msg;
-
-        t.style.display = 'flex';
-
-        setTimeout(() => {
-            t.style.display = 'none';
-        }, 2500);
-    }
-
-
-    // Image Upload Handling
-
-    const dropzone = document.getElementById('dropzone');
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const previewImage = document.getElementById('previewImage');
-    const btnChangePhoto = document.getElementById('btnChangePhoto');
-    const btnRemovePhoto = document.getElementById('btnRemovePhoto');
-    const btnToggleUrl = document.getElementById('btnToggleUrl');
-    const urlBox = document.getElementById('urlBox');
-    const imageUrlField = document.getElementById('imageUrlField');
-    const btnApplyImageUrl = document.getElementById('btnApplyImageUrl');
-
-
-    dropzone.addEventListener(
-        'click',
-        () => imageInput.click()
-    );
-
-
-    btnChangePhoto.addEventListener(
-        'click',
-        () => imageInput.click()
-    );
-
-
-    dropzone.addEventListener('dragover', (e) => {
-
-        e.preventDefault();
-
-        dropzone.classList.add('drag-active');
-
-    });
-
-
-    dropzone.addEventListener('dragleave', () => {
-
-        dropzone.classList.remove('drag-active');
-
-    });
-
-
-    dropzone.addEventListener('drop', (e) => {
-
-        e.preventDefault();
-
-        dropzone.classList.remove('drag-active');
-
-        if (
-            e.dataTransfer.files &&
-            e.dataTransfer.files[0]
-        ) {
-            processFile(e.dataTransfer.files[0]);
+        function saveStoredItems(items) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
         }
 
-    });
-
-
-    imageInput.addEventListener('change', (e) => {
-
-        if (
-            e.target.files &&
-            e.target.files[0]
-        ) {
-            processFile(e.target.files[0]);
+        function getStoredRequests() {
+            const raw = localStorage.getItem(REQUESTS_KEY);
+            return raw ? JSON.parse(raw) : [];
         }
 
-    });
-
-
-    function processFile(file) {
-
-        if (!file.type.startsWith('image/')) {
-
-            alert(
-                'Please select an image file (PNG, JPG, WebP).'
-            );
-
-            return;
+        function saveStoredRequests(reqs) {
+            localStorage.setItem(REQUESTS_KEY, JSON.stringify(reqs));
         }
 
-        const reader = new FileReader();
+        /* ----------------------------------------------------
+           DONOR LOGIC
+        ---------------------------------------------------- */
+        function handleDonorPhotoSelect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
 
-        reader.onload = (e) => {
-            setPhoto(e.target.result);
-        };
-
-        reader.readAsDataURL(file);
-    }
-
-
-    function setPhoto(url) {
-
-        currentImgData = url;
-
-        previewImage.src = url;
-
-        dropzone.style.display = 'none';
-
-        previewContainer.style.display = 'block';
-    }
-
-
-    btnRemovePhoto.addEventListener('click', () => {
-
-        currentImgData = null;
-
-        imageInput.value = '';
-
-        previewImage.src = '';
-
-        previewContainer.style.display = 'none';
-
-        dropzone.style.display = 'block';
-
-    });
-
-
-    btnToggleUrl.addEventListener('click', () => {
-
-        urlBox.style.display =
-            (
-                urlBox.style.display === 'none' ||
-                !urlBox.style.display
-            )
-                ? 'block'
-                : 'none';
-
-    });
-
-
-    btnApplyImageUrl.addEventListener('click', () => {
-
-        const u = imageUrlField.value.trim();
-
-        if (u) {
-
-            setPhoto(u);
-
-            urlBox.style.display = 'none';
-
-            imageUrlField.value = '';
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    donorPhotos.push(e.target.result);
+                    renderDonorPhotoPreviews();
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
-    });
+        function renderDonorPhotoPreviews() {
+            const grid = document.getElementById('donorPhotoPreviewGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            donorPhotos.forEach((src, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'photo-thumb';
+                thumb.innerHTML = `
+                    <img src="${src}" alt="preview">
+                    <button type="button" class="btn-remove-thumb" onclick="removeDonorPhoto(${idx})">&times;</button>
+                `;
+                grid.appendChild(thumb);
+            });
+        }
 
+        function removeDonorPhoto(idx) {
+            donorPhotos.splice(idx, 1);
+            renderDonorPhotoPreviews();
+        }
 
-    // Optional Details Accordion
+        function resetDonorPhotoList() {
+            donorPhotos = [];
+            renderDonorPhotoPreviews();
+        }
 
-    const btnToggleDetails =
-        document.getElementById('btnToggleDetails');
-
-    const detailsSection =
-        document.getElementById('detailsSection');
-
-    const toggleText =
-        document.getElementById('toggleText');
-
-
-    btnToggleDetails.addEventListener('click', () => {
-
-        const isOpen =
-            detailsSection.style.display === 'block';
-
-        detailsSection.style.display =
-            isOpen ? 'none' : 'block';
-
-        toggleText.innerText =
-            isOpen
-                ? '+ Add more details (optional)'
-                : '- Hide extra details';
-
-    });
-
-
-    // Form Submit
-
-    document.getElementById('donationForm')
-        .addEventListener('submit', (e) => {
-
+        function handleDonorSubmit(e) {
             e.preventDefault();
+            const title = document.getElementById('donorItemTitle').value.trim();
+            const category = document.getElementById('donorItemCategory').value;
+            const description = document.getElementById('donorItemDescription').value.trim();
+            const quantity = document.getElementById('donorItemQuantity')?.value.trim() || '1 item';
+            const condition = document.getElementById('donorItemCondition')?.value || 'Gently Used';
+            const location = document.getElementById('donorItemLocation')?.value.trim() || 'Local Area';
 
-            const title =
-                document.getElementById('itemTitle')
-                    .value.trim();
-
-            const category =
-                document.getElementById('itemCategory')
-                    .value;
-
-            const condition =
-                document.getElementById('itemCondition')
-                    .value;
-
-            const qty =
-                parseInt(
-                    document.getElementById('itemQty').value
-                ) || 1;
-
-            const location =
-                document.getElementById('itemLocation')
-                    .value.trim();
-
-            const desc =
-                document.getElementById('itemDesc')
-                    .value.trim();
-
+            const defaultImg = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=60';
+            const image = donorPhotos.length > 0 ? donorPhotos[0] : defaultImg;
 
             const newItem = {
-
-                id: Date.now(),
-
-                title: title,
-
-                category: category,
-
-                imageUrl: currentImgData || '',
-
-                condition: condition,
-
-                quantity: qty,
-
-                location: location,
-
-                description: desc,
-
-                status: "AVAILABLE",
-
-                hasFullDetails:
-                    Boolean(
-                        title ||
-                        category ||
-                        location ||
-                        desc
-                    )
+                id: 'item-' + Date.now(),
+                title,
+                category,
+                description,
+                quantity,
+                condition,
+                location,
+                status: 'AVAILABLE',
+                image,
+                date: new Date().toISOString().split('T')[0]
             };
 
+            const items = getStoredItems();
+            items.unshift(newItem);
+            saveStoredItems(items);
 
-            const list = getDonations();
+            document.getElementById('donorPostForm').reset();
+            resetDonorPhotoList();
 
-            list.unshift(newItem);
-
-            saveDonations(list);
-
-
-            // Reset
-
-            document.getElementById('donationForm').reset();
-
-            btnRemovePhoto.click();
-
-            detailsSection.style.display = 'none';
-
-            toggleText.innerText =
-                '+ Add more details (optional)';
-
-
-            notify('Donation posted successfully!');
-
-        });
-
-
-    // Render List
-
-    function renderList() {
-
-        const items = getDonations();
-
-        const container =
-            document.getElementById('itemsGrid');
-
-        const emptyView =
-            document.getElementById('emptyView');
-
-        const q =
-            document.getElementById('searchInput')
-                .value
-                .toLowerCase()
-                .trim();
-
-
-        const filtered = items.filter(it => {
-
-            const matchesFilter =
-                (filterStatus === 'all') ||
-                (it.status === filterStatus);
-
-
-            const matchesSearch =
-                !q ||
-                (it.title || '')
-                    .toLowerCase()
-                    .includes(q) ||
-                (it.category || '')
-                    .toLowerCase()
-                    .includes(q) ||
-                (it.description || '')
-                    .toLowerCase()
-                    .includes(q);
-
-
-            return matchesFilter && matchesSearch;
-
-        });
-
-
-        document.getElementById('countSummary')
-            .innerText =
-            `Showing ${filtered.length} of ${items.length} items`;
-
-
-        if (filtered.length === 0) {
-
-            container.innerHTML = '';
-
-            emptyView.style.display = 'block';
-
-            return;
+            renderDonorDashboard();
         }
 
-
-        emptyView.style.display = 'none';
-
-
-        container.innerHTML =
-            filtered.map(it => {
-
-                const isAvail =
-                    it.status === 'AVAILABLE';
-
-                const statusClass =
-                    isAvail
-                        ? 'available'
-                        : 'completed';
-
-                const statusLabel =
-                    isAvail
-                        ? 'Available'
-                        : 'Completed';
-
-                const toggleIcon =
-                    isAvail
-                        ? 'bi-check2-circle'
-                        : 'bi-arrow-clockwise';
-
-                const toggleTitle =
-                    isAvail
-                        ? 'Mark as Completed'
-                        : 'Mark as Available';
-
-
-                const image =
-                    it.imageUrl ||
-                    'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=600&q=80';
-
-
-                const title =
-                    it.title || 'Donation item';
-
-
-                const category =
-                    it.category || 'Uncategorized';
-
-
-                return `
-
-                    <div class="item-card">
-
-                        <div class="item-thumb">
-
-                            <img
-                                src="${image}"
-                                alt="${escapeHtml(title)}"
-                                onerror="this.src='https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=600&q=80'">
-
-                            <span class="status-badge ${statusClass}">
-                                ${statusLabel}
-                            </span>
-
-                            <span class="category-chip">
-                                ${escapeHtml(category)}
-                            </span>
-
-                        </div>
-
-
-                        <div class="item-info">
-
-                            <h4 class="item-title">
-                                ${escapeHtml(title)}
-                            </h4>
-
-
-                            <div class="item-snippet">
-
-                                ${
-                                    it.description
-                                        ? escapeHtml(it.description)
-                                        : '<em class="text-muted">No description provided.</em>'
-                                }
-
-                            </div>
-
-
-                            <div class="meta-pills">
-
-                                <span class="pill-tag">
-                                    ${escapeHtml(it.condition || 'Good')}
-                                </span>
-
-                                <span class="pill-tag">
-                                    Qty: ${it.quantity || 1}
-                                </span>
-
-
-                                ${
-                                    it.location
-                                        ? `
-                                            <span class="pill-tag">
-                                                <i class="bi bi-geo-alt"></i>
-                                                ${escapeHtml(it.location)}
-                                            </span>
-                                          `
-                                        : ''
-                                }
-
-
-                                ${
-                                    !it.hasFullDetails
-                                        ? `
-                                            <span class="pill-tag pill-pending">
-                                                <i class="bi bi-plus"></i>
-                                                Add details
-                                            </span>
-                                          `
-                                        : ''
-                                }
-
-                            </div>
-
-
-                            <div class="item-actions">
-
-                                <button
-                                    class="btn-card"
-                                    onclick="openEdit(${it.id})">
-
-                                    <i class="bi bi-pencil"></i>
-                                    Edit Details
-
-                                </button>
-
-
-                                <div class="d-flex gap-1">
-
-                                    <button
-                                        class="btn-card"
-                                        title="${toggleTitle}"
-                                        onclick="toggleItemStatus(${it.id})">
-
-                                        <i class="bi ${toggleIcon}"></i>
-
-                                    </button>
-
-
-                                    <button
-                                        class="btn-card btn-card-del"
-                                        title="Delete"
-                                        onclick="deleteDonation(${it.id})">
-
-                                        <i class="bi bi-trash"></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                `;
-
-            }).join('');
-
-    }
-
-
-    function escapeHtml(str) {
-
-        if (!str) return '';
-
-        const map = {
-
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-
-        };
-
-        return str.replace(
-            /[&<>"']/g,
-            m => map[m]
-        );
-    }
-
-
-    function updateStats() {
-
-        const items = getDonations();
-
-        const total =
-            items.length;
-
-        const available =
-            items.filter(
-                d => d.status === 'AVAILABLE'
-            ).length;
-
-        const completed =
-            items.filter(
-                d => d.status === 'COMPLETED'
-            ).length;
-
-        const impact =
-            (completed * 2) +
-            Math.min(total, 4);
-
-
-        document.getElementById('kpiTotal')
-            .innerText = total;
-
-        document.getElementById('kpiAvailable')
-            .innerText = available;
-
-        document.getElementById('kpiCompleted')
-            .innerText = completed;
-
-        document.getElementById('kpiImpact')
-            .innerText = impact;
-
-    }
-
-
-    // Filter Buttons
-
-    document.querySelectorAll('.filter-btn')
-        .forEach(btn => {
-
-            btn.addEventListener('click', () => {
-
-                document.querySelectorAll('.filter-btn')
-                    .forEach(b =>
-                        b.classList.remove('active')
-                    );
-
-                btn.classList.add('active');
-
-                filterStatus =
-                    btn.getAttribute('data-filter');
-
-                renderList();
-
-            });
-
-        });
-
-
-    document.getElementById('searchInput')
-        .addEventListener('input', () => {
-
-            renderList();
-
-        });
-
-
-    window.toggleItemStatus = function(id) {
-
-        const items = getDonations();
-
-        const it =
-            items.find(d => d.id === id);
-
-
-        if (it) {
-
-            it.status =
-                it.status === 'AVAILABLE'
-                    ? 'COMPLETED'
-                    : 'AVAILABLE';
-
-            saveDonations(items);
-
-            notify(
-                `Status marked as ${it.status}`
-            );
-        }
-
-    };
-
-
-    window.deleteDonation = function(id) {
-
-        if (confirm('Delete this donation item?')) {
-
-            let items = getDonations();
-
-            items =
-                items.filter(
-                    d => d.id !== id
-                );
-
-            saveDonations(items);
-
-            notify('Item removed.');
-        }
-
-    };
-
-
-    // Modal Edit
-
-    const editModal =
-        document.getElementById('editModal');
-
-    const modalFileInput =
-        document.getElementById('modalFileInput');
-
-    const modalImg =
-        document.getElementById('modalImg');
-
-
-    window.openEdit = function(id) {
-
-        const items = getDonations();
-
-        const it =
-            items.find(d => d.id === id);
-
-
-        if (!it) return;
-
-
-        document.getElementById('editId').value =
-            it.id;
-
-        document.getElementById('modalTitle').value =
-            it.title || '';
-
-        document.getElementById('modalCategory').value =
-            it.category || '';
-
-        document.getElementById('modalStatus').value =
-            it.status;
-
-        document.getElementById('modalCondition').value =
-            it.condition || 'Good';
-
-        document.getElementById('modalQty').value =
-            it.quantity || 1;
-
-        document.getElementById('modalLocation').value =
-            it.location || '';
-
-        document.getElementById('modalDesc').value =
-            it.description || '';
-
-
-        modalImgData =
-            it.imageUrl || '';
-
-        modalImg.src =
-            it.imageUrl ||
-            'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=600&q=80';
-
-
-        editModal.style.display = 'flex';
-
-    };
-
-
-    modalFileInput.addEventListener('change', (e) => {
-
-        if (
-            e.target.files &&
-            e.target.files[0]
-        ) {
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload = (evt) => {
-
-                modalImgData =
-                    evt.target.result;
-
-                modalImg.src =
-                    evt.target.result;
-
-            };
-
-
-            reader.readAsDataURL(
-                e.target.files[0]
-            );
-        }
-
-    });
-
-
-    document.getElementById('btnCloseModal')
-        .addEventListener('click', () => {
-
-            editModal.style.display = 'none';
-
-        });
-
-
-    document.getElementById('btnCancelModal')
-        .addEventListener('click', () => {
-
-            editModal.style.display = 'none';
-
-        });
-
-
-    document.getElementById('editForm')
-        .addEventListener('submit', (e) => {
-
-            e.preventDefault();
-
-
-            const id =
-                parseInt(
-                    document.getElementById('editId').value
-                );
-
-
-            const items =
-                getDonations();
-
-
-            const it =
-                items.find(d => d.id === id);
-
-
-            if (it) {
-
-                it.title =
-                    document.getElementById('modalTitle')
-                        .value.trim();
-
-
-                it.category =
-                    document.getElementById('modalCategory')
-                        .value;
-
-
-                it.status =
-                    document.getElementById('modalStatus')
-                        .value;
-
-
-                it.condition =
-                    document.getElementById('modalCondition')
-                        .value;
-
-
-                it.quantity =
-                    parseInt(
-                        document.getElementById('modalQty')
-                            .value
-                    ) || 1;
-
-
-                it.location =
-                    document.getElementById('modalLocation')
-                        .value.trim();
-
-
-                it.description =
-                    document.getElementById('modalDesc')
-                        .value.trim();
-
-
-                it.hasFullDetails =
-                    Boolean(
-                        it.title ||
-                        it.category ||
-                        it.location ||
-                        it.description
-                    );
-
-
-                if (modalImgData) {
-                    it.imageUrl =
-                        modalImgData;
-                }
-
-
-                saveDonations(items);
-
-                editModal.style.display = 'none';
-
-                notify(
-                    'Details updated successfully!'
-                );
-
+        function renderDonorDashboard() {
+            const serverGrid = document.getElementById('donorServerGrid');
+            const items = getStoredItems();
+            const grid = document.getElementById('donorItemsGrid');
+            const emptyState = document.getElementById('donorEmptyState');
+            if (!grid) return;
+
+            // Stats
+            const total = items.length;
+            const active = items.filter(i => i.status === 'AVAILABLE').length;
+            const reserved = items.filter(i => i.status === 'RESERVED').length;
+            const claimed = items.filter(i => i.status === 'CLAIMED').length;
+
+            if (document.getElementById('donorTotalCount')) document.getElementById('donorTotalCount').textContent = total;
+            if (document.getElementById('donorActiveCount')) document.getElementById('donorActiveCount').textContent = active;
+            if (document.getElementById('donorReservedCount')) document.getElementById('donorReservedCount').textContent = reserved;
+            if (document.getElementById('donorPeopleHelped')) document.getElementById('donorPeopleHelped').textContent = claimed + (reserved > 0 ? 1 : 0);
+
+            if (serverGrid) {
+                return;
             }
 
+            if (items.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            emptyState.classList.add('d-none');
+
+            grid.innerHTML = items.map(item => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="item-card">
+                        <div class="item-card-img">
+                            <img src="${item.image}" alt="${item.title}">
+                            <span class="badge-category">${item.category}</span>
+                            <span class="badge-status ${item.status.toLowerCase()}">${item.status}</span>
+                        </div>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <h6 class="fw-bold mb-1 text-dark">${item.title}</h6>
+                            <p class="text-muted small mb-2 flex-grow-1" style="line-height: 1.4;">${item.description}</p>
+                            <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
+                                <span><i class="bi bi-box me-1"></i>${item.quantity || '1 unit'}</span>
+                                <span><i class="bi bi-geo-alt me-1"></i>${item.location || 'Local'}</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary flex-grow-1 rounded-pill" onclick="openDonorEditModal('${item.id}')">
+                                    <i class="bi bi-pencil me-1"></i> Edit
+                                </button>
+                                <button class="btn btn-sm ${item.status === 'AVAILABLE' ? 'btn-outline-warning' : 'btn-outline-success'} rounded-pill" onclick="toggleItemStatus('${item.id}')">
+                                    ${item.status === 'AVAILABLE' ? 'Mark Reserved' : 'Mark Available'}
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteDonorItem('${item.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleItemStatus(id) {
+            const items = getStoredItems();
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.status = item.status === 'AVAILABLE' ? 'RESERVED' : 'AVAILABLE';
+                saveStoredItems(items);
+                renderDonorDashboard();
+            }
+        }
+
+        function deleteDonorItem(id) {
+            if (!confirm('Are you sure you want to delete this shared item?')) return;
+            let items = getStoredItems();
+            items = items.filter(i => i.id !== id);
+            saveStoredItems(items);
+            renderDonorDashboard();
+        }
+
+        function openDonorEditModal(id) {
+            const items = getStoredItems();
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('editItemTitle').value = item.title;
+            document.getElementById('editItemCategory').value = item.category;
+            document.getElementById('editItemDesc').value = item.description;
+            document.getElementById('editItemStatus').value = item.status;
+            document.getElementById('editItemQty').value = item.quantity || '';
+
+            new bootstrap.Modal(document.getElementById('donorEditModal')).show();
+        }
+
+        function saveDonorEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editItemId').value;
+            const items = getStoredItems();
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.title = document.getElementById('editItemTitle').value;
+                item.category = document.getElementById('editItemCategory').value;
+                item.description = document.getElementById('editItemDesc').value;
+                item.status = document.getElementById('editItemStatus').value;
+                item.quantity = document.getElementById('editItemQty').value;
+                saveStoredItems(items);
+                bootstrap.Modal.getInstance(document.getElementById('donorEditModal')).hide();
+                renderDonorDashboard();
+            }
+        }
+
+        function filterDonorFeed() {
+            const search = document.getElementById('donorSearchInput').value.toLowerCase();
+            const cat = document.getElementById('donorCategoryFilter').value;
+            const items = getStoredItems();
+            const filtered = items.filter(item => {
+                const matchSearch = item.title.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
+                const matchCat = cat === 'ALL' || item.category === cat;
+                return matchSearch && matchCat;
+            });
+            const grid = document.getElementById('donorItemsGrid');
+            if (grid) {
+                grid.innerHTML = filtered.map(item => `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="item-card">
+                            <div class="item-card-img">
+                                <img src="${item.image}" alt="${item.title}">
+                                <span class="badge-category">${item.category}</span>
+                                <span class="badge-status ${item.status.toLowerCase()}">${item.status}</span>
+                            </div>
+                            <div class="p-3 d-flex flex-column flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-dark">${item.title}</h6>
+                                <p class="text-muted small mb-2 flex-grow-1" style="line-height: 1.4;">${item.description}</p>
+                                <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
+                                    <span><i class="bi bi-box me-1"></i>${item.quantity || '1 unit'}</span>
+                                    <span><i class="bi bi-geo-alt me-1"></i>${item.location || 'Local'}</span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary flex-grow-1 rounded-pill" onclick="openDonorEditModal('${item.id}')">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm ${item.status === 'AVAILABLE' ? 'btn-outline-warning' : 'btn-outline-success'} rounded-pill" onclick="toggleItemStatus('${item.id}')">
+                                        ${item.status === 'AVAILABLE' ? 'Mark Reserved' : 'Mark Available'}
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteDonorItem('${item.id}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        /* ----------------------------------------------------
+           RECIPIENT LOGIC
+        ---------------------------------------------------- */
+        function renderRecipientFeed() {
+            const serverGrid = document.getElementById('recipientServerGrid');
+            const items = getStoredItems();
+            const requests = getStoredRequests();
+            const grid = document.getElementById('recipientItemsGrid');
+            const emptyState = document.getElementById('recipientEmptyState');
+            if (!grid) return;
+
+            const search = (document.getElementById('recipientSearchInput')?.value || '').toLowerCase();
+            const cat = document.getElementById('recipientCategoryFilter')?.value || 'ALL';
+            const cond = document.getElementById('recipientConditionFilter')?.value || 'ALL';
+
+            const availableItems = items.filter(i => i.status === 'AVAILABLE');
+
+            if (document.getElementById('recipientAvailableCount')) {
+                document.getElementById('recipientAvailableCount').textContent = availableItems.length;
+                document.getElementById('recipientPendingCount').textContent = requests.filter(r => r.status === 'PENDING').length;
+                document.getElementById('recipientReceivedCount').textContent = requests.filter(r => r.status === 'FULFILLED').length;
+                document.getElementById('tabRequestCount').textContent = requests.length;
+            }
+
+            if (serverGrid) {
+                return;
+            }
+
+            const filtered = availableItems.filter(item => {
+                const matchSearch = item.title.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
+                const matchCat = cat === 'ALL' || item.category === cat;
+                const matchCond = cond === 'ALL' || (item.condition && item.condition.includes(cond));
+                return matchSearch && matchCat && matchCond;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState?.classList.remove('d-none');
+                return;
+            }
+            emptyState?.classList.add('d-none');
+
+            grid.innerHTML = filtered.map(item => {
+                const isRequested = requests.some(r => r.itemId === item.id);
+                return `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="item-card">
+                            <div class="item-card-img">
+                                <img src="${item.image}" alt="${item.title}">
+                                <span class="badge-category">${item.category}</span>
+                                <span class="badge-status available">Ready for Pickup</span>
+                            </div>
+                            <div class="p-3 d-flex flex-column flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <h6 class="fw-bold mb-0 text-dark">${item.title}</h6>
+                                    <span class="badge bg-light text-secondary border">${item.condition || 'Good'}</span>
+                                </div>
+                                <p class="text-muted small mb-3 flex-grow-1">${item.description}</p>
+                                <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
+                                    <span><i class="bi bi-geo-alt me-1 text-danger"></i>${item.location || 'Local Pickup'}</span>
+                                    <span><i class="bi bi-box me-1"></i>${item.quantity || '1 available'}</span>
+                                </div>
+                                <button class="btn btn-primary-custom w-100 rounded-pill fw-bold" 
+                                        ${isRequested ? 'disabled' : ''} 
+                                        onclick="openRequestModal('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.category}')">
+                                    <i class="bi ${isRequested ? 'bi-check2' : 'bi-hand-index-thumb'} me-1"></i>
+                                    ${isRequested ? 'Request Submitted' : 'Request This Item'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openRequestModal(id, title, category) {
+            document.getElementById('requestModalItemId').value = id;
+            document.getElementById('requestModalItemTitle').textContent = title;
+            document.getElementById('requestModalItemCategory').textContent = category;
+            document.getElementById('requestNotes').value = '';
+            new bootstrap.Modal(document.getElementById('recipientRequestModal')).show();
+        }
+
+        function submitRecipientRequest() {
+            const itemId = document.getElementById('requestModalItemId').value;
+            const title = document.getElementById('requestModalItemTitle').textContent;
+            const category = document.getElementById('requestModalItemCategory').textContent;
+            const notes = document.getElementById('requestNotes').value.trim();
+
+            const requests = getStoredRequests();
+            requests.unshift({
+                requestId: 'req-' + Date.now(),
+                itemId: itemId,
+                title: title,
+                category: category,
+                notes: notes,
+                date: new Date().toLocaleDateString(),
+                status: 'PENDING'
+            });
+            saveStoredRequests(requests);
+
+            bootstrap.Modal.getInstance(document.getElementById('recipientRequestModal')).hide();
+            renderRecipientFeed();
+            renderRecipientRequests();
+        }
+
+        function renderRecipientRequests() {
+            const requests = getStoredRequests();
+            const grid = document.getElementById('recipientRequestsGrid');
+            const empty = document.getElementById('recipientRequestsEmptyState');
+            if (!grid) return;
+
+            if (requests.length === 0) {
+                grid.innerHTML = '';
+                empty?.classList.remove('d-none');
+                return;
+            }
+            empty?.classList.add('d-none');
+
+            grid.innerHTML = requests.map(req => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border rounded-4 p-3 shadow-sm h-100 bg-white">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-light text-primary border">${req.category}</span>
+                            <span class="badge ${req.status === 'PENDING' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-success-subtle text-success border border-success-subtle'} rounded-pill px-3 py-1">
+                                ${req.status}
+                            </span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">${req.title}</h6>
+                        <p class="text-muted small mb-2">${req.notes ? 'Note: ' + req.notes : 'No extra notes provided'}</p>
+                        <div class="text-muted small mt-auto border-top pt-2 d-flex justify-content-between align-items-center">
+                            <span>Requested: ${req.date}</span>
+                            <button class="btn btn-sm btn-outline-danger border-0" onclick="cancelRecipientRequest('${req.requestId}')">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function cancelRecipientRequest(reqId) {
+            let requests = getStoredRequests();
+            requests = requests.filter(r => r.requestId !== reqId);
+            saveStoredRequests(requests);
+            renderRecipientFeed();
+            renderRecipientRequests();
+        }
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDonorDashboard();
+            renderRecipientFeed();
+            renderRecipientRequests();
         });
-
-
-    editModal.addEventListener('click', (e) => {
-
-        if (e.target === editModal) {
-            editModal.style.display = 'none';
-        }
-
-    });
-
-
-    document.addEventListener(
-        'DOMContentLoaded',
-        () => {
-
-            renderList();
-
-            updateStats();
-
-        }
-    );
-
-</script>
-
+    </script>
 </body>
 </html>
