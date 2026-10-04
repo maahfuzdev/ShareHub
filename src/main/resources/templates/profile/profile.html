@@ -8,7 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="app-page">
-<nav class="app-nav"><a class="app-brand" th:href="@{/dashboard}"><span>SH</span> ShareHub</a><div class="app-nav-links"><a th:href="@{/dashboard}">Dashboard</a><a class="active" th:href="@{/profile}">Profile</a><button id="logoutBtn" class="nav-logout" type="button">Sign out</button></div></nav>
+<nav class="app-nav"><a class="app-brand" th:href="@{/dashboard}"><span>SH</span> ShareHub</a><div class="app-nav-links"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/donations}">Donations</a><a class="active" th:href="@{/profile}">Profile</a><button id="logoutBtn" class="nav-logout" type="button">Sign out</button></div></nav>
 <main class="page-wrap">
     <div class="page-heading"><div><p class="kicker">Account</p><h1>Your profile</h1><p>Keep your community details clear and up to date.</p></div><a class="back-link" th:href="@{/dashboard}"><i class="bi bi-arrow-left"></i> Dashboard</a></div>
     <section class="profile-layout" th:if="${user}">

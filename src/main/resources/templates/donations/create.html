@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post a donation | ShareHub</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/donations.css}">
+</head>
+<body class="app-page">
+<nav class="app-nav">
+    <a class="app-brand" th:href="@{/dashboard}"><span>SH</span> ShareHub</a>
+    <div class="app-nav-links">
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a class="active" th:href="@{/donations}">Donations</a>
+        <a th:href="@{/profile}">Profile</a>
+        <button id="logoutBtn" class="nav-logout" type="button">Sign out</button>
+    </div>
+</nav>
+<main class="page-wrap donation-form-page">
+    <div class="page-heading">
+        <div>
+            <p class="kicker">Give something useful</p>
+            <h1>Post a donation.</h1>
+            <p>Share clear details so neighbors know what is available.</p>
+        </div>
+        <a class="back-link" th:href="@{/donations}"><i class="bi bi-arrow-left"></i> All donations</a>
+    </div>
+    <form class="donation-form" th:action="@{/donations}" th:object="${donation}" method="post">
+        <div class="donation-field">
+            <label for="title">What are you sharing?</label>
+            <input id="title" type="text" th:field="*{title}" maxlength="120" required>
+            <small class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></small>
+        </div>
+        <div class="donation-field">
+            <label for="description">Description</label>
+            <textarea id="description" th:field="*{description}" rows="4" maxlength="2000" required></textarea>
+            <small class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+        </div>
+        <div class="donation-form-row">
+            <div class="donation-field">
+                <label for="category">Category</label>
+                <select id="category" th:field="*{category}" required>
+                    <option value="">Choose a category</option>
+                    <option th:each="category : ${T(com.sharehub.sharehub.entity.Donation.Category).values()}"
+                            th:value="${category}" th:text="${category}">FOOD</option>
+                </select>
+                <small class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></small>
+            </div>
+            <div class="donation-field">
+                <label for="quantity">Quantity</label>
+                <input id="quantity" type="text" th:field="*{quantity}" maxlength="80"
+                       placeholder="e.g. 3 meal boxes" required>
+                <small class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></small>
+            </div>
+        </div>
+        <div class="donation-form-row">
+            <div class="donation-field">
+                <label for="location">Area or neighborhood</label>
+                <input id="location" type="text" th:field="*{location}" maxlength="160"
+                       placeholder="Avoid sharing a private street address" required>
+                <small class="field-error" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></small>
+            </div>
+            <div class="donation-field">
+                <label for="availableUntil">Available until <span>(optional)</span></label>
+                <input id="availableUntil" type="date" th:field="*{availableUntil}">
+                <small class="field-error" th:if="${#fields.hasErrors('availableUntil')}" th:errors="*{availableUntil}"></small>
+            </div>
+        </div>
+        <div class="donation-form-actions">
+            <a class="donation-secondary-button" th:href="@{/donations}">Cancel</a>
+            <button class="donation-primary-button" type="submit">Publish donation</button>
+        </div>
+    </form>
+</main>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

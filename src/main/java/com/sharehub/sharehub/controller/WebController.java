@@ -58,11 +58,6 @@ public class WebController {
         return "profile/profile";
     }
 
-    @GetMapping("/resources")
-    public String resources() {
-        return "resources/resources";
-    }
-
     /**
      * Home Page - Redirect to Dashboard
      */

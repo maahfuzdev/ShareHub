@@ -353,6 +353,9 @@
             <span class="text-white-50 d-none d-md-inline" style="font-size: 0.9rem;">
                 Welcome, <strong class="text-white" th:text="${userName} ?: ${#authentication.name}">User</strong>
             </span>
+            <a th:href="@{/donations}" class="btn btn-outline-light btn-sm px-3 rounded-pill">
+                <i class="bi bi-gift me-1"></i> Community Donations
+            </a>
             <button id="logoutBtn" type="button" class="btn btn-outline-light btn-sm px-3 rounded-pill">
                 <i class="bi bi-box-arrow-right me-1"></i> Sign Out
             </button>

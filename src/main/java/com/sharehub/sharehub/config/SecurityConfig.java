@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -46,8 +47,8 @@ public class SecurityConfig {
                 cors.configurationSource(corsConfigurationSource())
             )
 
-            // CSRF Disabled
-            .csrf(csrf -> csrf.disable())
+            // JSON API clients use session cookies; protect browser form submissions
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
 
             // Session Management
             .sessionManagement(session -> session
@@ -91,6 +92,23 @@ public class SecurityConfig {
                     "/v3/api-docs/**"
                 )
                 .permitAll()
+
+                // Only donors can publish or close donation listings
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/donations/new",
+                    "/resources/new"
+                )
+                .hasRole("DONOR")
+
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/donations",
+                    "/donations/**",
+                    "/api/donations",
+                    "/api/donations/**"
+                )
+                .hasRole("DONOR")
 
                 // All Other APIs Require Authentication
                 .anyRequest()

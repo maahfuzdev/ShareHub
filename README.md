@@ -14,7 +14,8 @@ The project supports two clients from the same backend:
 - BCrypt password hashing through Spring Security.
 - Thymeleaf login, registration and protected dashboard pages.
 - Profile page populated from the authenticated user.
-- Resources discovery page prepared for future listings.
+- Community donation board for browsing active listings.
+- Donation listings: donors can publish and close listings; authenticated users can browse available donations.
 - PostgreSQL persistence with Flyway database migrations.
 - Swagger/OpenAPI documentation.
 - Latitude and longitude fields prepared for location-aware features.
@@ -103,7 +104,7 @@ Create the database before starting the application:
 CREATE DATABASE sharehub;
 ```
 
-Flyway automatically applies `V1__Create_User_Table.sql` on startup. The migration creates the `users` table, role column, account timestamps, and nullable `latitude` and `longitude` columns.
+Flyway automatically applies the user and donation migrations on startup. The donation board migration creates the `donations` table and indexes; existing databases are upgraded without changing the user table.
 
 For a real deployment, replace the default credentials with environment variables or an external secret manager.
 
@@ -150,6 +151,17 @@ docker compose down -v
 ## REST API
 
 All authentication endpoints are under `/api/auth`.
+
+Donation endpoints use the same authenticated session:
+
+| Method | Endpoint | Access | Purpose |
+|---|---|---|---|
+| `GET` | `/api/donations` | Authenticated | List available donations |
+| `GET` | `/api/donations/mine` | Authenticated | List the current user's donations |
+| `POST` | `/api/donations` | Donors | Create a donation |
+| `POST` | `/api/donations/{id}/close` | Donor who owns the listing | Close a listing |
+
+Donation categories are `FOOD`, `CLOTHING`, `BOOKS`, `HOUSEHOLD`, and `OTHER`. Listings can include a quantity, neighborhood/area, description, and optional availability date. The API intentionally returns the donor's display name rather than their private contact details.
 
 ### Register
 
@@ -217,7 +229,8 @@ This endpoint requires an authenticated session and returns the current user's e
 | `/register` | Public | Thymeleaf registration page |
 | `/dashboard` | Authenticated | User dashboard |
 | `/profile` | Authenticated | Current user's profile |
-| `/resources` | Authenticated | Resource discovery view |
+| `/resources`, `/donations` | Authenticated | Browse available donations; donors also see their listings |
+| `/donations/new` | Donors | Create a donation listing |
 | `/` | Authenticated | Redirects to dashboard |
 
 ## Build and Test
@@ -250,4 +263,3 @@ The authentication and first web experience are in place. The next product layer
 ## License
 
 No explicit license has been added yet.
-
