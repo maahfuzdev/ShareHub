@@ -17,12 +17,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResourceRequestService {
 
+    private static final int MAX_MESSAGE_LENGTH = 1000;
+
     private final ResourceRequestRepository resourceRequestRepository;
     private final DonationRepository donationRepository;
     private final UserRepository userRepository;
 
     @Transactional
     public ResourceRequest create(Long donationId, String message, String recipientEmail) {
+        String normalizedMessage = message == null || message.isBlank() ? null : message.trim();
+        if (normalizedMessage != null && normalizedMessage.length() > MAX_MESSAGE_LENGTH) {
+            throw new IllegalArgumentException("Request message must be 1000 characters or fewer");
+        }
+
         User recipient = userRepository.findByEmail(recipientEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Authenticated recipient was not found"));
         if (recipient.getRole() != User.Role.RECIPIENT) {
@@ -48,7 +55,7 @@ public class ResourceRequestService {
         ResourceRequest request = new ResourceRequest();
         request.setDonation(donation);
         request.setRecipient(recipient);
-        request.setMessage(message == null || message.isBlank() ? null : message.trim());
+        request.setMessage(normalizedMessage);
         request.setStatus(ResourceRequest.Status.PENDING);
         return resourceRequestRepository.save(request);
     }
