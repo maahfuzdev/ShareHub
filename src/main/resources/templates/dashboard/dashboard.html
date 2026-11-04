@@ -667,6 +667,9 @@
 
         <main class="container-xl py-4">
 
+            <div class="alert alert-success" th:if="${requestSuccess}" th:text="${requestSuccess}"></div>
+            <div class="alert alert-danger" th:if="${requestError}" th:text="${requestError}"></div>
+
             <!-- Recipient Metric Cards with dynamic Thymeleaf bindings -->
             <div class="row g-3 mb-4">
                 <div class="col-sm-6 col-lg-4">
@@ -752,24 +755,22 @@
                 <!-- Tab 1: Browse Available Items -->
                 <div class="tab-pane fade show active" id="browse-items" role="tabpanel">
                     
-                    <!-- Server-side loop when 'availableDonations' is passed by Spring Boot controller -->
-                    <div th:if="${availableDonations != null and !availableDonations.isEmpty()}" class="row g-4 mb-4" id="recipientServerGrid">
+                    <div th:if="${availableDonations != null}" class="row g-4 mb-4" id="recipientServerGrid">
                         <div class="col-md-6 col-lg-4" th:each="item : ${availableDonations}">
                             <div class="item-card">
                                 <div class="item-card-img">
-                                    <img th:src="${item.image ?: (item.imageUrl ?: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=60')}" th:alt="${item.title}">
+                                    <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                        <i class="bi bi-gift text-muted" style="font-size: 3rem;"></i>
+                                    </div>
                                     <span class="badge-category" th:text="${item.category}">Category</span>
                                     <span class="badge-status available">Ready for Pickup</span>
                                 </div>
                                 <div class="p-3 d-flex flex-column flex-grow-1">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold mb-0 text-dark" th:text="${item.title}">Item Title</h6>
-                                        <span class="badge bg-light text-secondary border" th:text="${item.condition ?: 'Good'}">Good</span>
-                                    </div>
+                                    <h6 class="fw-bold mb-1 text-dark" th:text="${item.title}">Item Title</h6>
                                     <p class="text-muted small mb-3 flex-grow-1" th:text="${item.description}">Description</p>
                                     <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
-                                        <span><i class="bi bi-geo-alt me-1 text-danger"></i><span th:text="${item.location ?: 'Local Pickup'}">Local</span></span>
-                                        <span><i class="bi bi-box me-1"></i><span th:text="${item.quantity ?: '1 unit'}">1 available</span></span>
+                                        <span><i class="bi bi-geo-alt me-1 text-danger"></i><span th:text="${item.location}">Local</span></span>
+                                        <span><i class="bi bi-box me-1"></i><span th:text="${item.quantity}">1 available</span></span>
                                     </div>
                                     <button class="btn btn-primary-custom w-100 rounded-pill fw-bold" th:onclick="'openRequestModal(\'' + ${item.id} + '\', \'' + ${#strings.escapeJavaScript(item.title)} + '\', \'' + ${item.category} + '\')'">
                                         <i class="bi bi-hand-index-thumb me-1"></i> Request This Item
@@ -778,27 +779,52 @@
                             </div>
                         </div>
                     </div>
+                    <div id="recipientEmptyState" class="text-center py-5"
+                         th:if="${availableDonations != null and availableDonations.isEmpty()}">
+                        <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
+                            <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 fw-bold text-dark">No Donations Available</h5>
+                            <p class="text-muted small mb-0">Check back soon for new community donations.</p>
+                        </div>
+                    </div>
 
                     <!-- Client Grid (Interactive sync fallback) -->
                     <div class="row g-4" id="recipientItemsGrid"></div>
-
-                    <div id="recipientEmptyState" class="text-center py-5 d-none">
-                        <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
-                            <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3 fw-bold text-dark">No Items Found</h5>
-                            <p class="text-muted small mb-0">Try changing your search terms or category filter.</p>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Tab 2: My Requests -->
                 <div class="tab-pane fade" id="my-requests" role="tabpanel">
-                    <div class="row g-4" id="recipientRequestsGrid"></div>
+                    <div class="row g-4" id="recipientServerRequestsGrid"
+                         th:if="${recipientRequests != null and !recipientRequests.isEmpty()}">
+                        <div class="col-md-6 col-lg-4" th:each="request : ${recipientRequests}">
+                            <div class="card border rounded-4 p-3 shadow-sm h-100 bg-white">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-light text-primary border" th:text="${request.donation.category}">Category</span>
+                                    <span class="badge rounded-pill px-3 py-1"
+                                          th:classappend="${request.status.name() == 'PENDING' ? ' bg-warning-subtle text-warning border border-warning-subtle' : (request.status.name() == 'FULFILLED' ? ' bg-success-subtle text-success border border-success-subtle' : ' bg-secondary-subtle text-secondary border border-secondary-subtle')}"
+                                          th:text="${request.status}">PENDING</span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1" th:text="${request.donation.title}">Requested item</h6>
+                                <p class="text-muted small mb-2"
+                                   th:text="${request.message != null and !request.message.isBlank() ? 'Note: ' + request.message : 'No extra notes provided'}">Request note</p>
+                                <div class="text-muted small mt-auto border-top pt-2 d-flex justify-content-between align-items-center">
+                                    <span>Requested: <span th:text="${#temporals.format(request.createdAt, 'MMM d, yyyy')}">Date</span></span>
+                                    <form th:if="${request.status.name() == 'PENDING'}"
+                                          th:action="@{/recipient/requests/{requestId}/cancel(requestId=${request.id})}" method="post">
+                                        <button class="btn btn-sm btn-outline-danger border-0" type="submit">
+                                            <i class="bi bi-x-circle me-1"></i> Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div id="recipientRequestsEmptyState" class="text-center py-5 d-none">
+                    <div id="recipientRequestsEmptyState" class="text-center py-5"
+                         th:if="${recipientRequests == null or recipientRequests.isEmpty()}">
                         <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
                             <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3 fw-bold text-dark">No Active Requests</h5>
+                            <h5 class="mt-3 fw-bold text-dark">No Requests Yet</h5>
                             <p class="text-muted small mb-3">Browse available community items and click "Request Item" to claim.</p>
                         </div>
                     </div>
@@ -872,25 +898,27 @@
                     <h5 class="modal-title fw-bold"><i class="bi bi-gift-fill me-2"></i> Confirm Item Request</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <input type="hidden" id="requestModalItemId">
-                    <p class="mb-2">You are requesting:</p>
-                    <div class="p-3 bg-light rounded-3 mb-3">
-                        <h6 class="fw-bold mb-1" id="requestModalItemTitle">Item Title</h6>
-                        <small class="text-muted" id="requestModalItemCategory">Category</small>
+                <form th:action="@{/recipient/requests}" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="requestModalItemId" name="donationId">
+                        <p class="mb-2">You are requesting:</p>
+                        <div class="p-3 bg-light rounded-3 mb-3">
+                            <h6 class="fw-bold mb-1" id="requestModalItemTitle">Item Title</h6>
+                            <small class="text-muted" id="requestModalItemCategory">Category</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small" for="requestNotes">Notes for Donor (Optional)</label>
+                            <textarea class="form-control" id="requestNotes" name="message" rows="2" maxlength="1000" placeholder="e.g. I can pick this up tomorrow at 4 PM..."></textarea>
+                        </div>
+                        <div class="alert alert-info small py-2 mb-0">
+                            <i class="bi bi-info-circle-fill me-1"></i> Once confirmed, the donor will be notified to coordinate pickup.
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Notes for Donor (Optional)</label>
-                        <textarea class="form-control" id="requestNotes" rows="2" placeholder="e.g. I can pick this up tomorrow at 4 PM..."></textarea>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary-custom rounded-pill px-4">Confirm Request</button>
                     </div>
-                    <div class="alert alert-info small py-2 mb-0">
-                        <i class="bi bi-info-circle-fill me-1"></i> Once confirmed, the donor will be notified to coordinate pickup.
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary-custom rounded-pill px-4" onclick="submitRecipientRequest()">Confirm Request</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1210,6 +1238,8 @@
         ---------------------------------------------------- */
         function renderRecipientFeed() {
             const serverGrid = document.getElementById('recipientServerGrid');
+            if (serverGrid) return;
+
             const items = getStoredItems();
             const requests = getStoredRequests();
             const grid = document.getElementById('recipientItemsGrid');
@@ -1227,10 +1257,6 @@
                 document.getElementById('recipientPendingCount').textContent = requests.filter(r => r.status === 'PENDING').length;
                 document.getElementById('recipientReceivedCount').textContent = requests.filter(r => r.status === 'FULFILLED').length;
                 document.getElementById('tabRequestCount').textContent = requests.length;
-            }
-
-            if (serverGrid) {
-                return;
             }
 
             const filtered = availableItems.filter(item => {
