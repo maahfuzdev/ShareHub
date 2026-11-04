@@ -739,7 +739,7 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link rounded-pill px-4" id="my-requests-tab" data-bs-toggle="pill" data-bs-target="#my-requests" type="button" role="tab" onclick="renderRecipientRequests()">
+                    <button class="nav-link rounded-pill px-4" id="my-requests-tab" data-bs-toggle="pill" data-bs-target="#my-requests" type="button" role="tab">
                         <i class="bi bi-card-checklist me-1"></i> My Requested Items (<span id="tabRequestCount" th:text="${myRequestsCount} ?: '0'">0</span>)
                     </button>
                 </li>
@@ -791,8 +791,6 @@
                         </div>
                     </div>
 
-                    <!-- Client Grid (Interactive sync fallback) -->
-                    <div class="row g-4" id="recipientItemsGrid"></div>
                 </div>
 
                 <!-- Tab 2: My Requests -->
@@ -935,7 +933,6 @@
     <!-- Client-Side State & Dynamic Interaction Handler -->
     <script>
         const STORAGE_KEY = 'sharehub_items_db';
-        const REQUESTS_KEY = 'sharehub_recipient_requests';
 
         let donorPhotos = [];
 
@@ -993,15 +990,6 @@
 
         function saveStoredItems(items) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        }
-
-        function getStoredRequests() {
-            const raw = localStorage.getItem(REQUESTS_KEY);
-            return raw ? JSON.parse(raw) : [];
-        }
-
-        function saveStoredRequests(reqs) {
-            localStorage.setItem(REQUESTS_KEY, JSON.stringify(reqs));
         }
 
         /* ----------------------------------------------------
@@ -1241,93 +1229,25 @@
         ---------------------------------------------------- */
         function renderRecipientFeed() {
             const serverGrid = document.getElementById('recipientServerGrid');
+            if (!serverGrid) return;
+
             const search = (document.getElementById('recipientSearchInput')?.value || '').toLowerCase();
             const cat = document.getElementById('recipientCategoryFilter')?.value || 'ALL';
             const filteredEmptyState = document.getElementById('recipientFilteredEmptyState');
 
-            if (serverGrid) {
-                const cards = Array.from(serverGrid.children);
-                let visibleCount = 0;
-                cards.forEach(card => {
-                    const title = card.querySelector('h6')?.textContent?.toLowerCase() || '';
-                    const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
-                    const matches = (title.includes(search) || description.includes(search))
-                        && (cat === 'ALL' || card.dataset.category === cat);
-                    card.classList.toggle('d-none', !matches);
-                    if (matches) visibleCount++;
-                });
-                if (filteredEmptyState) {
-                    filteredEmptyState.classList.toggle('d-none', cards.length === 0 || visibleCount > 0);
-                }
-                const availableCount = document.getElementById('recipientAvailableCount');
-                if (availableCount) availableCount.textContent = cards.length;
-                return;
-            }
-
-            const items = getStoredItems();
-            const requests = getStoredRequests();
-            const grid = document.getElementById('recipientItemsGrid');
-            const emptyState = document.getElementById('recipientEmptyState');
-            if (!grid) return;
-
-            const availableItems = items.filter(i => i.status === 'AVAILABLE');
-
-            if (document.getElementById('recipientAvailableCount')) {
-                document.getElementById('recipientAvailableCount').textContent = availableItems.length;
-                document.getElementById('recipientPendingCount').textContent = requests.filter(r => r.status === 'PENDING').length;
-                document.getElementById('recipientReceivedCount').textContent = requests.filter(r => r.status === 'FULFILLED').length;
-                document.getElementById('tabRequestCount').textContent = requests.length;
-            }
-
-            const filtered = availableItems.filter(item => {
-                const matchSearch = item.title.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
-                const categoryLabels = {
-                    FOOD: 'Food & Groceries',
-                    BOOKS: 'Books & Education',
-                    HOUSEHOLD: 'Home & Furniture'
-                };
-                const matchCat = cat === 'ALL' || item.category === cat || item.category === categoryLabels[cat];
-                return matchSearch && matchCat;
+            const cards = Array.from(serverGrid.children);
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const title = card.querySelector('h6')?.textContent?.toLowerCase() || '';
+                const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
+                const matches = (title.includes(search) || description.includes(search))
+                    && (cat === 'ALL' || card.dataset.category === cat);
+                card.classList.toggle('d-none', !matches);
+                if (matches) visibleCount++;
             });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = '';
-                emptyState?.classList.remove('d-none');
-                return;
+            if (filteredEmptyState) {
+                filteredEmptyState.classList.toggle('d-none', cards.length === 0 || visibleCount > 0);
             }
-            emptyState?.classList.add('d-none');
-
-            grid.innerHTML = filtered.map(item => {
-                const isRequested = requests.some(r => r.itemId === item.id);
-                return `
-                    <div class="col-md-6 col-lg-4">
-                        <div class="item-card">
-                            <div class="item-card-img">
-                                <img src="${item.image}" alt="${item.title}">
-                                <span class="badge-category">${item.category}</span>
-                                <span class="badge-status available">Ready for Pickup</span>
-                            </div>
-                            <div class="p-3 d-flex flex-column flex-grow-1">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <h6 class="fw-bold mb-0 text-dark">${item.title}</h6>
-                                    <span class="badge bg-light text-secondary border">${item.condition || 'Good'}</span>
-                                </div>
-                                <p class="text-muted small mb-3 flex-grow-1">${item.description}</p>
-                                <div class="d-flex justify-content-between text-muted small border-top pt-2 mb-3">
-                                    <span><i class="bi bi-geo-alt me-1 text-danger"></i>${item.location || 'Local Pickup'}</span>
-                                    <span><i class="bi bi-box me-1"></i>${item.quantity || '1 available'}</span>
-                                </div>
-                                <button class="btn btn-primary-custom w-100 rounded-pill fw-bold" 
-                                        ${isRequested ? 'disabled' : ''} 
-                                        onclick="openRequestModal('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.category}')">
-                                    <i class="bi ${isRequested ? 'bi-check2' : 'bi-hand-index-thumb'} me-1"></i>
-                                    ${isRequested ? 'Request Submitted' : 'Request This Item'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
         }
 
         function openRequestModal(id, title, category) {
@@ -1338,77 +1258,10 @@
             new bootstrap.Modal(document.getElementById('recipientRequestModal')).show();
         }
 
-        function submitRecipientRequest() {
-            const itemId = document.getElementById('requestModalItemId').value;
-            const title = document.getElementById('requestModalItemTitle').textContent;
-            const category = document.getElementById('requestModalItemCategory').textContent;
-            const notes = document.getElementById('requestNotes').value.trim();
-
-            const requests = getStoredRequests();
-            requests.unshift({
-                requestId: 'req-' + Date.now(),
-                itemId: itemId,
-                title: title,
-                category: category,
-                notes: notes,
-                date: new Date().toLocaleDateString(),
-                status: 'PENDING'
-            });
-            saveStoredRequests(requests);
-
-            bootstrap.Modal.getInstance(document.getElementById('recipientRequestModal')).hide();
-            renderRecipientFeed();
-            renderRecipientRequests();
-        }
-
-        function renderRecipientRequests() {
-            const requests = getStoredRequests();
-            const grid = document.getElementById('recipientRequestsGrid');
-            const empty = document.getElementById('recipientRequestsEmptyState');
-            if (!grid) return;
-
-            if (requests.length === 0) {
-                grid.innerHTML = '';
-                empty?.classList.remove('d-none');
-                return;
-            }
-            empty?.classList.add('d-none');
-
-            grid.innerHTML = requests.map(req => `
-                <div class="col-md-6 col-lg-4">
-                    <div class="card border rounded-4 p-3 shadow-sm h-100 bg-white">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge bg-light text-primary border">${req.category}</span>
-                            <span class="badge ${req.status === 'PENDING' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-success-subtle text-success border border-success-subtle'} rounded-pill px-3 py-1">
-                                ${req.status}
-                            </span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">${req.title}</h6>
-                        <p class="text-muted small mb-2">${req.notes ? 'Note: ' + req.notes : 'No extra notes provided'}</p>
-                        <div class="text-muted small mt-auto border-top pt-2 d-flex justify-content-between align-items-center">
-                            <span>Requested: ${req.date}</span>
-                            <button class="btn btn-sm btn-outline-danger border-0" onclick="cancelRecipientRequest('${req.requestId}')">
-                                <i class="bi bi-x-circle me-1"></i> Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function cancelRecipientRequest(reqId) {
-            let requests = getStoredRequests();
-            requests = requests.filter(r => r.requestId !== reqId);
-            saveStoredRequests(requests);
-            renderRecipientFeed();
-            renderRecipientRequests();
-        }
-
         // Initialize on DOM load
         document.addEventListener('DOMContentLoaded', () => {
             renderDonorDashboard();
             renderRecipientFeed();
-            renderRecipientRequests();
         });
     </script>
 </body>
