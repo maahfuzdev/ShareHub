@@ -720,16 +720,11 @@
                         <div class="d-flex gap-2 flex-wrap justify-content-md-end">
                             <select id="recipientCategoryFilter" class="form-select form-select-sm rounded-pill w-auto" onchange="renderRecipientFeed()">
                                 <option value="ALL">All Categories</option>
-                                <option value="Food & Groceries">Food & Groceries</option>
-                                <option value="Clothing">Clothing</option>
-                                <option value="Books & Education">Books & Education</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Home & Furniture">Furniture</option>
-                            </select>
-                            <select id="recipientConditionFilter" class="form-select form-select-sm rounded-pill w-auto" onchange="renderRecipientFeed()">
-                                <option value="ALL">All Conditions</option>
-                                <option value="New / Unopened">Brand New</option>
-                                <option value="Gently Used">Gently Used</option>
+                                <option value="FOOD">Food & Groceries</option>
+                                <option value="CLOTHING">Clothing</option>
+                                <option value="BOOKS">Books & Education</option>
+                                <option value="HOUSEHOLD">Home & Furniture</option>
+                                <option value="OTHER">Other</option>
                             </select>
                         </div>
                     </div>
@@ -756,7 +751,8 @@
                 <div class="tab-pane fade show active" id="browse-items" role="tabpanel">
                     
                     <div th:if="${availableDonations != null}" class="row g-4 mb-4" id="recipientServerGrid">
-                        <div class="col-md-6 col-lg-4" th:each="item : ${availableDonations}">
+                        <div class="col-md-6 col-lg-4" th:each="item : ${availableDonations}"
+                             th:attr="data-category=${item.category.name()}">
                             <div class="item-card">
                                 <div class="item-card-img">
                                     <div class="d-flex align-items-center justify-content-center h-100 bg-light">
@@ -785,6 +781,13 @@
                             <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
                             <h5 class="mt-3 fw-bold text-dark">No Donations Available</h5>
                             <p class="text-muted small mb-0">Check back soon for new community donations.</p>
+                        </div>
+                    </div>
+                    <div id="recipientFilteredEmptyState" class="text-center py-5 d-none">
+                        <div class="p-4 bg-white rounded-4 border d-inline-block shadow-sm">
+                            <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 fw-bold text-dark">No Matching Donations</h5>
+                            <p class="text-muted small mb-0">Try another search or category.</p>
                         </div>
                     </div>
 
@@ -1238,17 +1241,34 @@
         ---------------------------------------------------- */
         function renderRecipientFeed() {
             const serverGrid = document.getElementById('recipientServerGrid');
-            if (serverGrid) return;
+            const search = (document.getElementById('recipientSearchInput')?.value || '').toLowerCase();
+            const cat = document.getElementById('recipientCategoryFilter')?.value || 'ALL';
+            const filteredEmptyState = document.getElementById('recipientFilteredEmptyState');
+
+            if (serverGrid) {
+                const cards = Array.from(serverGrid.children);
+                let visibleCount = 0;
+                cards.forEach(card => {
+                    const title = card.querySelector('h6')?.textContent?.toLowerCase() || '';
+                    const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
+                    const matches = (title.includes(search) || description.includes(search))
+                        && (cat === 'ALL' || card.dataset.category === cat);
+                    card.classList.toggle('d-none', !matches);
+                    if (matches) visibleCount++;
+                });
+                if (filteredEmptyState) {
+                    filteredEmptyState.classList.toggle('d-none', cards.length === 0 || visibleCount > 0);
+                }
+                const availableCount = document.getElementById('recipientAvailableCount');
+                if (availableCount) availableCount.textContent = cards.length;
+                return;
+            }
 
             const items = getStoredItems();
             const requests = getStoredRequests();
             const grid = document.getElementById('recipientItemsGrid');
             const emptyState = document.getElementById('recipientEmptyState');
             if (!grid) return;
-
-            const search = (document.getElementById('recipientSearchInput')?.value || '').toLowerCase();
-            const cat = document.getElementById('recipientCategoryFilter')?.value || 'ALL';
-            const cond = document.getElementById('recipientConditionFilter')?.value || 'ALL';
 
             const availableItems = items.filter(i => i.status === 'AVAILABLE');
 
@@ -1261,9 +1281,13 @@
 
             const filtered = availableItems.filter(item => {
                 const matchSearch = item.title.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
-                const matchCat = cat === 'ALL' || item.category === cat;
-                const matchCond = cond === 'ALL' || (item.condition && item.condition.includes(cond));
-                return matchSearch && matchCat && matchCond;
+                const categoryLabels = {
+                    FOOD: 'Food & Groceries',
+                    BOOKS: 'Books & Education',
+                    HOUSEHOLD: 'Home & Furniture'
+                };
+                const matchCat = cat === 'ALL' || item.category === cat || item.category === categoryLabels[cat];
+                return matchSearch && matchCat;
             });
 
             if (filtered.length === 0) {
