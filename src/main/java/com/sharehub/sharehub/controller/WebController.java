@@ -6,16 +6,24 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.sharehub.sharehub.dto.request.RegisterRequest;
+import com.sharehub.sharehub.entity.ResourceRequest;
+import com.sharehub.sharehub.entity.User;
 import com.sharehub.sharehub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.sharehub.sharehub.service.DonationService;
+import com.sharehub.sharehub.service.ResourceRequestService;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
 public class WebController {
 
     private final UserRepository userRepository;
+    private final DonationService donationService;
+    private final ResourceRequestService resourceRequestService;
 
     /**
      * Login Page
@@ -46,8 +54,22 @@ public class WebController {
      * Dashboard Page (Protected)
      */
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        // User info SecurityContext থেকে automatically পাবেন
+    public String dashboard(@AuthenticationPrincipal User user, Model model) {
+        if (user.getRole() == User.Role.RECIPIENT) {
+            List<ResourceRequest> requests = resourceRequestService.findByRecipient(user.getEmail());
+            var availableDonations = donationService.findAvailable();
+            model.addAttribute("availableDonations", availableDonations);
+            model.addAttribute("recipientRequests", requests);
+            model.addAttribute("availableItemsCount", availableDonations.size());
+            model.addAttribute("activeRequestsCount", requests.stream()
+                    .filter(request -> request.getStatus() == ResourceRequest.Status.PENDING
+                            || request.getStatus() == ResourceRequest.Status.APPROVED)
+                    .count());
+            model.addAttribute("itemsReceivedCount", requests.stream()
+                    .filter(request -> request.getStatus() == ResourceRequest.Status.FULFILLED)
+                    .count());
+            model.addAttribute("myRequestsCount", requests.size());
+        }
         return "dashboard/dashboard";
     }
 
