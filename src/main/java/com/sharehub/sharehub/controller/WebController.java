@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.sharehub.sharehub.dto.request.RegisterRequest;
 import com.sharehub.sharehub.entity.ResourceRequest;
 import com.sharehub.sharehub.entity.User;
 import com.sharehub.sharehub.repository.UserRepository;
