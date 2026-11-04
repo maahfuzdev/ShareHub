@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,6 +82,29 @@ class ResourceRequestServiceTest {
     }
 
     @Test
+    void createRejectsAnotherActiveRequestForSameDonation() {
+        User recipient = new User();
+        recipient.setEmail("recipient@example.com");
+        recipient.setRole(User.Role.RECIPIENT);
+
+        Donation donation = new Donation();
+        donation.setId(5L);
+
+        ResourceRequest existingRequest = new ResourceRequest();
+        existingRequest.setDonation(donation);
+        existingRequest.setStatus(ResourceRequest.Status.PENDING);
+
+        when(userRepository.findByEmail(recipient.getEmail())).thenReturn(Optional.of(recipient));
+        when(donationRepository.findById(5L)).thenReturn(Optional.of(donation));
+        when(resourceRequestRepository.findByRecipientEmailOrderByCreatedAtDesc(recipient.getEmail()))
+                .thenReturn(List.of(existingRequest));
+
+        assertThrows(IllegalStateException.class,
+                () -> resourceRequestService.create(5L, null, recipient.getEmail()));
+        verify(resourceRequestRepository, never()).save(any(ResourceRequest.class));
+    }
+
+    @Test
     void createRejectsNonRecipientUser() {
         User donor = new User();
         donor.setEmail("donor@example.com");
@@ -104,5 +128,19 @@ class ResourceRequestServiceTest {
 
         assertTrue(resourceRequestService.cancel(9L, recipient.getEmail()));
         assertEquals(ResourceRequest.Status.CANCELLED, request.getStatus());
+    }
+
+    @Test
+    void cancelRejectsRequestsNotOwnedByRecipientOrNoLongerPending() {
+        User owner = new User();
+        owner.setEmail("owner@example.com");
+        ResourceRequest request = new ResourceRequest();
+        request.setRecipient(owner);
+        request.setStatus(ResourceRequest.Status.APPROVED);
+        when(resourceRequestRepository.findById(9L)).thenReturn(Optional.of(request));
+
+        assertFalse(resourceRequestService.cancel(9L, "other@example.com"));
+        assertEquals(ResourceRequest.Status.APPROVED, request.getStatus());
+        assertFalse(resourceRequestService.cancel(9L, owner.getEmail()));
     }
 }
