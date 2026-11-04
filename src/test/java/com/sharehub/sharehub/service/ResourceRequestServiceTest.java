@@ -65,6 +65,16 @@ class ResourceRequestServiceTest {
     }
 
     @Test
+    void createRejectsMessageLongerThanDatabaseLimit() {
+        String message = "a".repeat(1001);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> resourceRequestService.create(5L, message, "recipient@example.com"));
+        verify(userRepository, never()).findByEmail(any());
+        verify(resourceRequestRepository, never()).save(any(ResourceRequest.class));
+    }
+
+    @Test
     void createRejectsUnavailableDonation() {
         User recipient = new User();
         recipient.setEmail("recipient@example.com");
