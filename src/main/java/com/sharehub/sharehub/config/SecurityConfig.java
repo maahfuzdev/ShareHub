@@ -95,6 +95,14 @@ public class SecurityConfig {
                 )
                 .hasRole("DONOR")
 
+                // Only recipients can submit or cancel resource requests
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/recipient/requests",
+                    "/recipient/requests/**"
+                )
+                .hasRole("RECIPIENT")
+
                 .requestMatchers(
                     HttpMethod.POST,
                     "/donations",
