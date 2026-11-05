@@ -41,6 +41,8 @@
         </div>
         <div class="donation-grid" th:if="${!myDonations.isEmpty()}">
             <article class="donation-card" th:each="donation : ${myDonations}">
+                <img class="donation-card-image" th:if="${donation.hasImage}"
+                     th:src="@{/donations/{id}/image(id=${donation.id})}" th:alt="${donation.title}">
                 <div class="donation-card-heading">
                     <span class="donation-category" th:text="${donation.category}">FOOD</span>
                     <span class="donation-status" th:classappend="${donation.status.name() == 'CLOSED'} ? ' is-closed' : ''"
@@ -69,6 +71,8 @@
         </div>
         <div class="donation-grid" th:if="${!donations.isEmpty()}">
             <article class="donation-card" th:each="donation : ${donations}">
+                <img class="donation-card-image" th:if="${donation.hasImage}"
+                     th:src="@{/donations/{id}/image(id=${donation.id})}" th:alt="${donation.title}">
                 <div class="donation-card-heading">
                     <span class="donation-category" th:text="${donation.category}">FOOD</span>
                     <span class="donation-date" th:text="${#temporals.format(donation.createdAt, 'MMM d, yyyy')}">Oct 4, 2026</span>
