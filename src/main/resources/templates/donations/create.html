@@ -33,7 +33,18 @@
     </div>
     <form class="donation-form"
           th:action="${editingDonation} ? @{/donations/{id}/edit(id=${donationId})} : @{/donations}"
-          th:object="${donation}" method="post">
+          th:object="${donation}" method="post" enctype="multipart/form-data">
+        <div class="field-error" th:if="${#fields.hasGlobalErrors()}"
+             th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+        <div class="donation-field" th:if="${hasImage}">
+            <label>Current item photo</label>
+            <img class="donation-current-image" th:src="@{/donations/{id}/image(id=${donationId})}"
+                 alt="Current donation photo">
+        </div>
+        <div class="donation-field">
+            <label for="image">Item photo <span>(optional, JPEG/PNG/WebP, up to 5 MB; a new photo replaces the current one)</span></label>
+            <input id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp">
+        </div>
         <div class="donation-field">
             <label for="title">What are you sharing?</label>
             <input id="title" type="text" th:field="*{title}" maxlength="120" required>
