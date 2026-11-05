@@ -462,16 +462,19 @@
                         </div>
 
                         <div class="p-4 p-md-4">
-                            <form id="donorPostForm" th:action="@{/api/donations}" method="post" enctype="multipart/form-data" onsubmit="handleDonorSubmit(event)">
+                            <form id="donorPostForm" th:action="@{/donations}" method="post"
+                                  enctype="multipart/form-data">
                                 <div class="row g-4">
                                     
                                     <!-- Photo Upload Zone -->
                                     <div class="col-lg-5">
                                         <label class="form-label fw-bold text-dark mb-2">
-                                            <i class="bi bi-camera-fill text-danger me-1"></i> Item Photos
+                                            <i class="bi bi-camera-fill text-danger me-1"></i> Item Photo
                                         </label>
                                         <div class="photo-dropzone" id="donorPhotoDropzone" onclick="document.getElementById('donorPhotoInput').click()">
-                                            <input type="file" id="donorPhotoInput" name="imageFiles" accept="image/*" multiple style="display: none;" onchange="handleDonorPhotoSelect(event)">
+                                            <input type="file" id="donorPhotoInput" name="image"
+                                                   accept="image/jpeg,image/png,image/webp" style="display: none;"
+                                                   onchange="handleDonorPhotoSelect(event)">
                                             <div class="py-2">
                                                 <i class="bi bi-cloud-arrow-up-fill fs-1 text-danger"></i>
                                                 <div class="fw-bold mt-2 text-dark">Click to upload or drag photos here</div>
@@ -497,14 +500,14 @@
                                                 </label>
                                                 <select name="category" class="form-select form-select-lg border-2" id="donorItemCategory" required>
                                                     <option value="" disabled selected>Select Category</option>
-                                                    <option value="Food & Groceries">🍲 Food & Groceries</option>
-                                                    <option value="Clothing">👕 Clothing & Footwear</option>
-                                                    <option value="Books & Education">📚 Books & Education</option>
-                                                    <option value="Electronics">💻 Electronics & Gadgets</option>
-                                                    <option value="Home & Furniture">🪑 Home & Furniture</option>
-                                                    <option value="Health & Medical">💊 Health & Medical</option>
-                                                    <option value="Toys & Kids">🧸 Toys & Kids</option>
-                                                    <option value="Other">📦 Other Necessities</option>
+                                                    <option value="FOOD">🍲 Food & Groceries</option>
+                                                    <option value="CLOTHING">👕 Clothing & Footwear</option>
+                                                    <option value="BOOKS">📚 Books & Education</option>
+                                                    <option value="OTHER">💻 Electronics & Gadgets</option>
+                                                    <option value="HOUSEHOLD">🪑 Home & Furniture</option>
+                                                    <option value="OTHER">💊 Health & Medical</option>
+                                                    <option value="OTHER">🧸 Toys & Kids</option>
+                                                    <option value="OTHER">📦 Other Necessities</option>
                                                 </select>
                                             </div>
 
@@ -532,7 +535,8 @@
                                                         <div class="row g-3">
                                                             <div class="col-md-4">
                                                                 <label class="form-label small fw-bold">Quantity / Units</label>
-                                                                <input type="text" name="quantity" class="form-control form-control-sm" id="donorItemQuantity" placeholder="e.g. 2 bags, 1 unit">
+                                                                <input type="text" name="quantity" class="form-control form-control-sm"
+                                                                       id="donorItemQuantity" value="1 item" required>
                                                             </div>
                                                             <div class="col-md-4">
                                                                 <label class="form-label small fw-bold">Condition</label>
@@ -544,7 +548,8 @@
                                                             </div>
                                                             <div class="col-md-4">
                                                                 <label class="form-label small fw-bold">Pickup Location / City</label>
-                                                                <input type="text" name="location" class="form-control form-control-sm" id="donorItemLocation" placeholder="e.g. Downtown / West End">
+                                                                <input type="text" name="location" class="form-control form-control-sm"
+                                                                       id="donorItemLocation" value="Local Area" required>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -597,7 +602,10 @@
                      th:attr="data-category=${item.category.name()}">
                     <div class="item-card">
                         <div class="item-card-img">
-                            <div class="d-flex align-items-center justify-content-center h-100 w-100 bg-light">
+                            <img th:if="${item.hasImage}" th:src="@{/donations/{id}/image(id=${item.id})}"
+                                 th:alt="${item.title}">
+                            <div th:unless="${item.hasImage}"
+                                 class="d-flex align-items-center justify-content-center h-100 w-100 bg-light">
                                 <i class="bi bi-gift text-muted" style="font-size: 3rem;"></i>
                             </div>
                             <span class="badge-category" th:text="${item.category}">Category</span>
@@ -766,7 +774,10 @@
                              th:attr="data-category=${item.category.name()}">
                             <div class="item-card">
                                 <div class="item-card-img">
-                                    <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                    <img th:if="${item.hasImage}" th:src="@{/donations/{id}/image(id=${item.id})}"
+                                         th:alt="${item.title}">
+                                    <div th:unless="${item.hasImage}"
+                                         class="d-flex align-items-center justify-content-center h-100 bg-light">
                                         <i class="bi bi-gift text-muted" style="font-size: 3rem;"></i>
                                     </div>
                                     <span class="badge-category" th:text="${item.category}">Category</span>
@@ -1133,14 +1144,20 @@
             const files = event.target.files;
             if (!files || files.length === 0) return;
 
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    donorPhotos.push(e.target.result);
-                    renderDonorPhotoPreviews();
-                };
-                reader.readAsDataURL(file);
-            });
+            const file = files[0];
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image must be 5 MB or smaller.');
+                event.target.value = '';
+                resetDonorPhotoList();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                donorPhotos = [e.target.result];
+                renderDonorPhotoPreviews();
+            };
+            reader.readAsDataURL(file);
         }
 
         function renderDonorPhotoPreviews() {
@@ -1160,57 +1177,13 @@
 
         function removeDonorPhoto(idx) {
             donorPhotos.splice(idx, 1);
+            document.getElementById('donorPhotoInput').value = '';
             renderDonorPhotoPreviews();
         }
 
         function resetDonorPhotoList() {
             donorPhotos = [];
             renderDonorPhotoPreviews();
-        }
-
-        async function handleDonorSubmit(e) {
-            e.preventDefault();
-            const title = document.getElementById('donorItemTitle').value.trim();
-            const categoryLabel = document.getElementById('donorItemCategory').value;
-            const description = document.getElementById('donorItemDescription').value.trim();
-            const quantity = document.getElementById('donorItemQuantity')?.value.trim() || '1 item';
-            const location = document.getElementById('donorItemLocation')?.value.trim() || 'Local Area';
-
-            const categories = {
-                'Food & Groceries': 'FOOD',
-                'Clothing': 'CLOTHING',
-                'Books & Education': 'BOOKS',
-                'Electronics': 'OTHER',
-                'Home & Furniture': 'HOUSEHOLD',
-                'Health & Medical': 'OTHER',
-                'Toys & Kids': 'OTHER',
-                'Other': 'OTHER'
-            };
-            try {
-                const response = await fetch('/api/donations', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        title,
-                        description,
-                        category: categories[categoryLabel],
-                        quantity,
-                        location
-                    })
-                });
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(data.message || data.error || 'Could not post donation. Please try again.');
-                }
-            } catch (error) {
-                alert(error.message);
-                return;
-            }
-
-            document.getElementById('donorPostForm').reset();
-            resetDonorPhotoList();
-            window.location.reload();
         }
 
         function renderDonorDashboard() {
