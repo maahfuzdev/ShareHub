@@ -17,4 +17,6 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
 
     @EntityGraph(attributePaths = "donor")
     Optional<Donation> findByIdAndDonorEmail(Long id, String email);
+
+    Optional<Donation> findByIdAndStatus(Long id, Donation.Status status);
 }
