@@ -1034,22 +1034,32 @@
             renderDonorPhotoPreviews();
         }
 
-        function handleDonorSubmit(e) {
+        async function handleDonorSubmit(e) {
             e.preventDefault();
             const title = document.getElementById('donorItemTitle').value.trim();
-            const category = document.getElementById('donorItemCategory').value;
+            const categoryLabel = document.getElementById('donorItemCategory').value;
             const description = document.getElementById('donorItemDescription').value.trim();
             const quantity = document.getElementById('donorItemQuantity')?.value.trim() || '1 item';
             const condition = document.getElementById('donorItemCondition')?.value || 'Gently Used';
             const location = document.getElementById('donorItemLocation')?.value.trim() || 'Local Area';
 
+            const categories = {
+                'Food & Groceries': 'FOOD',
+                'Clothing': 'CLOTHING',
+                'Books & Education': 'BOOKS',
+                'Electronics': 'OTHER',
+                'Home & Furniture': 'HOUSEHOLD',
+                'Health & Medical': 'OTHER',
+                'Toys & Kids': 'OTHER',
+                'Other': 'OTHER'
+            };
             const defaultImg = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=60';
             const image = donorPhotos.length > 0 ? donorPhotos[0] : defaultImg;
 
             const newItem = {
                 id: 'item-' + Date.now(),
                 title,
-                category,
+                category: categoryLabel,
                 description,
                 quantity,
                 condition,
@@ -1058,6 +1068,28 @@
                 image,
                 date: new Date().toISOString().split('T')[0]
             };
+
+            try {
+                const response = await fetch('/api/donations', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        category: categories[categoryLabel],
+                        quantity,
+                        location
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'Could not post donation. Please try again.');
+                }
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
 
             const items = getStoredItems();
             items.unshift(newItem);
@@ -1238,9 +1270,8 @@
             const cards = Array.from(serverGrid.children);
             let visibleCount = 0;
             cards.forEach(card => {
-                const title = card.querySelector('h6')?.textContent?.toLowerCase() || '';
-                const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
-                const matches = (title.includes(search) || description.includes(search))
+                const searchableText = card.querySelector('.item-card')?.textContent?.toLowerCase() || '';
+                const matches = searchableText.includes(search)
                     && (cat === 'ALL' || card.dataset.category === cat);
                 card.classList.toggle('d-none', !matches);
                 if (matches) visibleCount++;
