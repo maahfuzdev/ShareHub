@@ -26,6 +26,7 @@
 .donation-count, .donation-date { color: var(--gray); font-size: 12px; }
 .donation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .donation-card, .donation-form { padding: 24px; border: 1px solid #dfe9e0; border-radius: 8px; background: rgba(255,255,255,.94); box-shadow: 0 12px 35px rgba(29,62,48,.06); }
+.donation-card-image { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 5px; background: #f1f5f3; }
 .donation-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; }
 .donation-category, .donation-status { padding: 6px 9px; border-radius: 20px; color: var(--primary); background: #edf4ef; font-size: 10px; font-weight: 700; letter-spacing: .6px; }
 .donation-status { color: #875338; background: #fbefe8; }
@@ -41,6 +42,7 @@
 .donation-alert-error, .field-error { color: #a43c32; background: #fff0ed; }
 .donation-form-page { max-width: 900px; }
 .donation-form { padding: clamp(22px, 4vw, 38px); }
+.donation-current-image { display: block; max-width: min(100%, 420px); max-height: 280px; object-fit: contain; border-radius: 6px; background: #f1f5f3; }
 .donation-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
 .donation-field label { color: var(--dark); font-size: 13px; font-weight: 700; }
 .donation-field label span { color: var(--gray); font-weight: 400; }
