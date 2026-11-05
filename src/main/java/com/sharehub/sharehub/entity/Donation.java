@@ -60,6 +60,9 @@ public class Donation {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "has_image", nullable = false)
+    private boolean hasImage;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
