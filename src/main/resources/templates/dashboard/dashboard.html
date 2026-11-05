@@ -1012,6 +1012,8 @@
 
         function renderLegacyDonations() {
             const section = document.getElementById('legacyDonationSection');
+            if (!section) return;
+
             const grid = document.getElementById('legacyDonationGrid');
             const error = document.getElementById('legacyDonationError');
             let items;
