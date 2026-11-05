@@ -1263,7 +1263,9 @@
             const serverGrid = document.getElementById('recipientServerGrid');
             if (!serverGrid) return;
 
-            const search = (document.getElementById('recipientSearchInput')?.value || '').toLowerCase();
+            const search = (document.getElementById('recipientSearchInput')?.value || '')
+                .toLowerCase()
+                .replace(/\bclothes\b/g, 'clothing');
             const cat = document.getElementById('recipientCategoryFilter')?.value || 'ALL';
             const filteredEmptyState = document.getElementById('recipientFilteredEmptyState');
 
