@@ -610,6 +610,8 @@
                                 <span><i class="bi bi-box me-1"></i><span th:text="${item.quantity}">1 unit</span></span>
                                 <span><i class="bi bi-geo-alt me-1"></i><span th:text="${item.location}">Local</span></span>
                             </div>
+                            <a class="btn btn-sm btn-outline-secondary rounded-pill mb-2"
+                               th:href="@{/donations/{id}/edit(id=${item.id})}">Edit details</a>
                             <form th:action="@{/donations/{id}/availability(id=${item.id})}" method="post">
                                 <input type="hidden" name="available"
                                        th:value="${item.status.name() != 'AVAILABLE'}">

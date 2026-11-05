@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,11 @@ public class DonationService {
         return donationRepository.findByDonorEmailOrderByCreatedAtDesc(email);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Donation> findOwnedById(Long id, String donorEmail) {
+        return donationRepository.findByIdAndDonorEmail(id, donorEmail);
+    }
+
     @Transactional
     public Donation create(DonationRequest request, String donorEmail) {
         User donor = userRepository.findByEmail(donorEmail)
@@ -44,6 +50,22 @@ public class DonationService {
         donation.setStatus(Donation.Status.AVAILABLE);
         donation.setDonor(donor);
         return donationRepository.save(donation);
+    }
+
+    @Transactional
+    public boolean update(Long id, DonationRequest request, String donorEmail) {
+        return donationRepository.findByIdAndDonorEmail(id, donorEmail)
+                .map(donation -> {
+                    donation.setTitle(request.getTitle().trim());
+                    donation.setDescription(request.getDescription().trim());
+                    donation.setCategory(request.getCategory());
+                    donation.setQuantity(request.getQuantity().trim());
+                    donation.setLocation(request.getLocation().trim());
+                    donation.setAvailableUntil(request.getAvailableUntil());
+                    donationRepository.save(donation);
+                    return true;
+                })
+                .orElse(false);
     }
 
     @Transactional

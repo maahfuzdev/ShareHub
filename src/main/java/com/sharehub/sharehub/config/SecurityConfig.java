@@ -87,10 +87,11 @@ public class SecurityConfig {
                 )
                 .permitAll()
 
-                // Only donors can publish or close donation listings
+                // Only donors can publish or manage donation listings
                 .requestMatchers(
                     HttpMethod.GET,
                     "/donations/new",
+                    "/donations/*/edit",
                     "/resources/new"
                 )
                 .hasRole("DONOR")
