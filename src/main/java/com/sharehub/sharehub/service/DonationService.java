@@ -48,9 +48,14 @@ public class DonationService {
 
     @Transactional
     public boolean close(Long id, String donorEmail) {
+        return setAvailability(id, donorEmail, false);
+    }
+
+    @Transactional
+    public boolean setAvailability(Long id, String donorEmail, boolean available) {
         return donationRepository.findByIdAndDonorEmail(id, donorEmail)
                 .map(donation -> {
-                    donation.setStatus(Donation.Status.CLOSED);
+                    donation.setStatus(available ? Donation.Status.AVAILABLE : Donation.Status.CLOSED);
                     donationRepository.save(donation);
                     return true;
                 })

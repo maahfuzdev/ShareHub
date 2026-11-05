@@ -610,6 +610,15 @@
                                 <span><i class="bi bi-box me-1"></i><span th:text="${item.quantity}">1 unit</span></span>
                                 <span><i class="bi bi-geo-alt me-1"></i><span th:text="${item.location}">Local</span></span>
                             </div>
+                            <form th:action="@{/donations/{id}/availability(id=${item.id})}" method="post">
+                                <input type="hidden" name="available"
+                                       th:value="${item.status.name() != 'AVAILABLE'}">
+                                <button class="btn btn-sm w-100 rounded-pill"
+                                        th:classappend="${item.status.name() == 'AVAILABLE' ? 'btn-outline-warning' : 'btn-outline-success'}"
+                                        th:text="${item.status.name() == 'AVAILABLE' ? 'Close Listing' : 'Make Available'}">
+                                    Update availability
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

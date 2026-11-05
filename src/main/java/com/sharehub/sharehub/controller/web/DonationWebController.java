@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -65,5 +66,29 @@ public class DonationWebController {
             redirectAttributes.addFlashAttribute("notFound", true);
         }
         return "redirect:/donations";
+    }
+
+    @PostMapping("/{id}/availability")
+    public String updateAvailability(
+            @PathVariable Long id,
+            @RequestParam boolean available,
+            @AuthenticationPrincipal User user,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (user.getRole() != User.Role.DONOR) {
+            redirectAttributes.addFlashAttribute("requestError", "Only donors can update donation availability.");
+            return "redirect:/dashboard";
+        }
+
+        if (donationService.setAvailability(id, user.getEmail(), available)) {
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    available ? "Your donation is now available to the community."
+                            : "Your donation is no longer available to the community."
+            );
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "That donation was not found in your listings.");
+        }
+        return "redirect:/dashboard";
     }
 }
