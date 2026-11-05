@@ -2,10 +2,14 @@ package com.sharehub.sharehub.controller.web;
 
 import com.sharehub.sharehub.dto.request.DonationRequest;
 import com.sharehub.sharehub.entity.Donation;
+import com.sharehub.sharehub.entity.DonationImage;
 import com.sharehub.sharehub.entity.User;
 import com.sharehub.sharehub.service.DonationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 @RequestMapping({"/resources", "/donations"})
@@ -37,7 +42,10 @@ public class DonationWebController {
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("donation", new DonationRequest());
+        DonationRequest request = new DonationRequest();
+        request.setQuantity("1 item");
+        request.setLocation("Local Area");
+        model.addAttribute("donation", request);
         model.addAttribute("editingDonation", false);
         return "donations/create";
     }
@@ -59,6 +67,7 @@ public class DonationWebController {
                     model.addAttribute("donation", toRequest(donation));
                     model.addAttribute("donationId", id);
                     model.addAttribute("editingDonation", true);
+                    model.addAttribute("hasImage", donation.isHasImage());
                     return "donations/create";
                 })
                 .orElseGet(() -> {
@@ -71,8 +80,10 @@ public class DonationWebController {
     public String create(
             @Valid @ModelAttribute("donation") DonationRequest request,
             BindingResult bindingResult,
+            @RequestParam(name = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal User user,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
         if (user.getRole() != User.Role.DONOR) {
             return "redirect:/dashboard";
@@ -82,8 +93,15 @@ public class DonationWebController {
             return "donations/create";
         }
 
-        donationService.create(request, user.getEmail());
-        return "redirect:/donations?created";
+        try {
+            donationService.create(request, user.getEmail(), image);
+        } catch (IllegalArgumentException exception) {
+            bindingResult.reject("image", exception.getMessage());
+            model.addAttribute("editingDonation", false);
+            return "donations/create";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Your donation has been shared with the community.");
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/{id}/edit")
@@ -91,6 +109,7 @@ public class DonationWebController {
             @PathVariable Long id,
             @Valid @ModelAttribute("donation") DonationRequest request,
             BindingResult bindingResult,
+            @RequestParam(name = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal User user,
             Model model,
             RedirectAttributes redirectAttributes
@@ -103,15 +122,39 @@ public class DonationWebController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("donationId", id);
             model.addAttribute("editingDonation", true);
+            donationService.findOwnedById(id, user.getEmail())
+                    .ifPresent(donation -> model.addAttribute("hasImage", donation.isHasImage()));
             return "donations/create";
         }
 
-        if (donationService.update(id, request, user.getEmail())) {
+        boolean updated;
+        try {
+            updated = donationService.update(id, request, user.getEmail(), image);
+        } catch (IllegalArgumentException exception) {
+            bindingResult.reject("image", exception.getMessage());
+            model.addAttribute("donationId", id);
+            model.addAttribute("editingDonation", true);
+            donationService.findOwnedById(id, user.getEmail())
+                    .ifPresent(donation -> model.addAttribute("hasImage", donation.isHasImage()));
+            return "donations/create";
+        }
+
+        if (updated) {
             redirectAttributes.addFlashAttribute("successMessage", "Your donation details have been updated.");
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "That donation was not found in your listings.");
         }
         return "redirect:/dashboard";
+    }
+
+    @GetMapping("/{id}/image")
+    public ResponseEntity<byte[]> image(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user
+    ) {
+        return donationService.findImageForUser(id, user.getEmail(), user.getRole())
+                .map(this::imageResponse)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/close")
@@ -161,5 +204,13 @@ public class DonationWebController {
         request.setLocation(donation.getLocation());
         request.setAvailableUntil(donation.getAvailableUntil());
         return request;
+    }
+
+    private ResponseEntity<byte[]> imageResponse(DonationImage image) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(image.getContentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                .header("X-Content-Type-Options", "nosniff")
+                .body(image.getImageData());
     }
 }
