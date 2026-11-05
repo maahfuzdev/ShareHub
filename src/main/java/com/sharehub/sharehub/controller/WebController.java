@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.sharehub.sharehub.dto.request.RegisterRequest;
+import com.sharehub.sharehub.entity.Donation;
 import com.sharehub.sharehub.entity.ResourceRequest;
 import com.sharehub.sharehub.entity.User;
 import com.sharehub.sharehub.repository.UserRepository;
@@ -70,6 +71,13 @@ public class WebController {
                     .filter(request -> request.getStatus() == ResourceRequest.Status.FULFILLED)
                     .count());
             model.addAttribute("myRequestsCount", requests.size());
+        } else if (user.getRole() == User.Role.DONOR) {
+            var donations = donationService.findByDonor(user.getEmail());
+            model.addAttribute("myDonations", donations);
+            model.addAttribute("totalDonationsCount", donations.size());
+            model.addAttribute("activeDonationsCount", donations.stream()
+                    .filter(donation -> donation.getStatus() == Donation.Status.AVAILABLE)
+                    .count());
         }
         return "dashboard/dashboard";
     }
