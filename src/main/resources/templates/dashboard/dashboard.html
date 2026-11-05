@@ -637,6 +637,16 @@
                 </div>
             </div>
 
+            <section id="legacyDonationSection" class="mb-4 d-none">
+                <h5 class="fw-bold">Saved on this browser</h5>
+                <p class="text-muted small">
+                    These older items are not shared with the community yet. Review each item and publish it if it is still available.
+                    Built-in sample items are excluded. Publishing makes an item available to recipients.
+                </p>
+                <div id="legacyDonationError" class="alert alert-danger d-none" role="alert"></div>
+                <div id="legacyDonationGrid" class="row g-4"></div>
+            </section>
+
         </main>
     </div>
 
@@ -991,6 +1001,150 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
         }
 
+        function categoryForLegacyItem(category) {
+            const normalized = String(category || '').toLowerCase();
+            if (normalized.includes('food') || normalized.includes('grocer')) return 'FOOD';
+            if (normalized.includes('cloth') || normalized.includes('wear')) return 'CLOTHING';
+            if (normalized.includes('book') || normalized.includes('educat')) return 'BOOKS';
+            if (normalized.includes('home') || normalized.includes('furniture') || normalized.includes('household')) return 'HOUSEHOLD';
+            return 'OTHER';
+        }
+
+        function renderLegacyDonations() {
+            const section = document.getElementById('legacyDonationSection');
+            const grid = document.getElementById('legacyDonationGrid');
+            const error = document.getElementById('legacyDonationError');
+            let items;
+
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                items = JSON.parse(raw);
+                if (!Array.isArray(items)) throw new Error('Saved item data is not a list.');
+            } catch (exception) {
+                section.classList.remove('d-none');
+                error.textContent = 'Could not read saved items from this browser. They have not been changed.';
+                error.classList.remove('d-none');
+                return;
+            }
+
+            const sampleIds = new Set(['item-101', 'item-102', 'item-103']);
+            const personalItems = items.filter(item =>
+                item && typeof item === 'object' && !sampleIds.has(String(item.id))
+            );
+            const legacyItems = personalItems.filter(item =>
+                item.id != null
+                && typeof item.title === 'string' && item.title.trim()
+                && typeof item.description === 'string' && item.description.trim()
+            );
+            const skippedCount = personalItems.length - legacyItems.length;
+            if (legacyItems.length === 0 && skippedCount === 0) return;
+
+            section.classList.remove('d-none');
+            grid.replaceChildren();
+            if (skippedCount > 0) {
+                error.textContent = `${skippedCount} saved item(s) could not be offered because they are missing an ID, title, or description.`;
+                error.classList.remove('d-none');
+            }
+            legacyItems.forEach(item => {
+                const column = document.createElement('div');
+                column.className = 'col-md-6 col-lg-4';
+
+                const card = document.createElement('div');
+                card.className = 'item-card h-100';
+                const content = document.createElement('div');
+                content.className = 'p-3 d-flex flex-column h-100';
+
+                const title = document.createElement('h6');
+                title.className = 'fw-bold mb-1 text-dark';
+                title.textContent = item.title;
+                content.appendChild(title);
+
+                const description = document.createElement('p');
+                description.className = 'text-muted small mb-3';
+                description.textContent = item.description;
+                content.appendChild(description);
+
+                const previousStatus = document.createElement('p');
+                previousStatus.className = 'text-muted small';
+                previousStatus.textContent = `Previously marked: ${item.status || 'unknown'}; publishing makes it available.`;
+                content.appendChild(previousStatus);
+
+                const category = document.createElement('select');
+                category.className = 'form-select form-select-sm mb-3';
+                category.setAttribute('aria-label', `Category for ${item.title}`);
+                [
+                    ['FOOD', 'Food & Groceries'],
+                    ['CLOTHING', 'Clothing'],
+                    ['BOOKS', 'Books & Education'],
+                    ['HOUSEHOLD', 'Household'],
+                    ['OTHER', 'Other']
+                ].forEach(([value, label]) => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    option.selected = value === categoryForLegacyItem(item.category);
+                    category.appendChild(option);
+                });
+                content.appendChild(category);
+
+                const publishButton = document.createElement('button');
+                publishButton.type = 'button';
+                publishButton.className = 'btn btn-primary-custom rounded-pill mt-auto';
+                publishButton.textContent = 'Publish to community';
+                publishButton.addEventListener('click', () => publishLegacyDonation(item, category.value, publishButton));
+                content.appendChild(publishButton);
+
+                card.appendChild(content);
+                column.appendChild(card);
+                grid.appendChild(column);
+            });
+        }
+
+        async function publishLegacyDonation(item, category, button) {
+            button.disabled = true;
+            try {
+                const savedItems = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                if (!Array.isArray(savedItems)
+                    || !savedItems.some(savedItem => String(savedItem.id) === String(item.id))) {
+                    throw new Error('This saved item is no longer available in browser storage. Refresh the page and review the list again.');
+                }
+
+                const response = await fetch('/api/donations', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        title: item.title.trim(),
+                        description: item.description.trim(),
+                        category,
+                        quantity: String(item.quantity || '1 item').trim(),
+                        location: String(item.location || 'Local Area').trim()
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'Could not publish this item. Please try again.');
+                }
+
+                try {
+                    saveStoredItems(savedItems.filter(savedItem => String(savedItem.id) !== String(item.id)));
+                } catch (exception) {
+                    button.textContent = 'Published; browser copy remains';
+                    const error = document.getElementById('legacyDonationError');
+                    error.textContent = 'The donation was published, but its saved browser copy could not be removed. Do not publish it again.';
+                    error.classList.remove('d-none');
+                    return;
+                }
+                window.location.reload();
+            } catch (exception) {
+                button.disabled = false;
+                const error = document.getElementById('legacyDonationError');
+                error.textContent = exception.message;
+                error.classList.remove('d-none');
+            }
+        }
+
         /* ----------------------------------------------------
            DONOR LOGIC
         ---------------------------------------------------- */
@@ -1241,6 +1395,7 @@
         // Initialize on DOM load
         document.addEventListener('DOMContentLoaded', () => {
             renderRecipientFeed();
+            renderLegacyDonations();
         });
     </script>
 </body>
