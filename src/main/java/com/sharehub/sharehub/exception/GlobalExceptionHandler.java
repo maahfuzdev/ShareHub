@@ -3,6 +3,7 @@
 package com.sharehub.sharehub.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import com.sharehub.sharehub.service.AiServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,6 +19,16 @@ import java.util.Map;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ErrorResponse> handleAiServiceException(AiServiceException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
