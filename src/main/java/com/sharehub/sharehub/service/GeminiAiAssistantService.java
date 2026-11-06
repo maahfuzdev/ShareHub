@@ -7,11 +7,13 @@ import com.sharehub.sharehub.config.AiProperties;
 import com.sharehub.sharehub.dto.response.AiDonationSuggestionResponse;
 import com.sharehub.sharehub.entity.Donation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,6 +135,15 @@ public class GeminiAiAssistantService implements AiAssistantService {
             responseContent = response == null
                     ? null
                     : response.path("choices").path(0).path("message").path("content").asText(null);
+        } catch (RestClientResponseException exception) {
+            log.warn("Gemini request for {} failed with HTTP {} ({})",
+                    operation, exception.getStatusCode().value(), exception.getStatusText());
+            throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
+        } catch (ResourceAccessException exception) {
+            Throwable cause = rootCause(exception);
+            log.warn("Could not reach Gemini for {} ({}); check network, DNS, TLS, or timeout settings",
+                    operation, cause.getClass().getSimpleName());
+            throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
         } catch (RestClientException exception) {
             log.warn("Gemini request for {} failed ({})", operation, exception.getClass().getSimpleName());
             throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
@@ -183,5 +194,13 @@ public class GeminiAiAssistantService implements AiAssistantService {
         } catch (IllegalArgumentException exception) {
             throw new AiServiceException("Gemini returned an invalid donation category. Please try again.", exception);
         }
+    }
+
+    private Throwable rootCause(Throwable exception) {
+        Throwable cause = exception;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        return cause;
     }
 }

@@ -3,6 +3,7 @@ package com.sharehub.sharehub.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sharehub.sharehub.config.AiProperties;
 import com.sharehub.sharehub.entity.Donation;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.http.HttpMethod.POST;
 
 class GeminiAiAssistantServiceTest {
@@ -40,6 +42,26 @@ class GeminiAiAssistantServiceTest {
         assertEquals("Fresh produce", result.title());
         assertEquals(Donation.Category.FOOD, result.category());
         assertEquals(2, result.missingDetails().size());
+        server.verify();
+    }
+
+    @Test
+    void reportsProviderErrorsAsAiServiceFailures() {
+        String endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiProperties properties = new AiProperties();
+        properties.setApiKey("test-key");
+        properties.setEndpoint(endpoint);
+        properties.setModel("gemini-3.8-flash");
+
+        server.expect(requestTo(endpoint))
+                .andExpect(method(POST))
+                .andRespond(withServerError());
+
+        GeminiAiAssistantService service = new GeminiAiAssistantService(builder.build(), properties, new ObjectMapper());
+
+        Assertions.assertThrows(AiServiceException.class, () -> service.suggestDonation("A box of vegetables"));
         server.verify();
     }
 }
