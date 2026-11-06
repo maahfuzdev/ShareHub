@@ -130,22 +130,7 @@ public class GeminiAiAssistantService implements AiAssistantService {
                 "max_tokens", 700
         );
 
-        JsonNode response;
-        try {
-            response = requestWithRetry(request, properties.getModel(), operation, true);
-        } catch (ModelUnavailableException exception) {
-            String fallbackModel = properties.getFallbackModel();
-            if (fallbackModel == null || fallbackModel.isBlank()
-                    || fallbackModel.equalsIgnoreCase(properties.getModel())) {
-                log.warn("Gemini fallback is disabled or matches the primary model; cannot recover {} from HTTP 503",
-                        operation);
-                throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
-            }
-
-            log.warn("Primary Gemini model {} returned HTTP 503 after {} attempts; trying fallback model {}",
-                    properties.getModel(), MAX_ATTEMPTS, fallbackModel);
-            response = requestWithRetry(request, fallbackModel, operation, false);
-        }
+        JsonNode response = requestWithRetry(request, operation);
 
         String responseContent = response == null
                 ? null
@@ -164,12 +149,10 @@ public class GeminiAiAssistantService implements AiAssistantService {
         }
     }
 
-    private JsonNode requestWithRetry(
-            Map<String, Object> request,
-            String model,
-            String operation,
-            boolean allowFallback
-    ) {
+    private JsonNode requestWithRetry(Map<String, Object> request, String operation) {
+        String model = properties.getModel();
+        boolean usingFallback = false;
+
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
                 return restClient.post()
@@ -181,12 +164,23 @@ public class GeminiAiAssistantService implements AiAssistantService {
                         .body(JsonNode.class);
             } catch (RestClientResponseException exception) {
                 int status = exception.getStatusCode().value();
+                String fallbackModel = properties.getFallbackModel();
+                if (status == 503 && !usingFallback && attempt < MAX_ATTEMPTS
+                        && fallbackModel != null && !fallbackModel.isBlank()
+                        && !fallbackModel.equalsIgnoreCase(model)) {
+                    log.warn("Gemini model {} returned HTTP 503; routing attempt {} directly to fallback model {}",
+                            model, attempt + 1, fallbackModel);
+                    model = fallbackModel;
+                    usingFallback = true;
+                    continue;
+                }
+
                 if (!isRetryableStatus(status) || attempt == MAX_ATTEMPTS) {
-                    log.warn("Gemini request for {} failed with HTTP {} ({})",
-                            operation, status, exception.getStatusText());
-                    if (allowFallback && status == 503) {
-                        throw new ModelUnavailableException(exception);
-                    }
+                    log.warn("Gemini request failed. Operation: {}, Model: {}, HTTP: {}, Response: {}",
+                    operation,
+                    model,
+                    status,
+                    exception.getResponseBodyAsString());
                     throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
                 }
                 log.warn("Gemini request for {} returned HTTP {}; retrying attempt {} of {}",
@@ -212,9 +206,8 @@ public class GeminiAiAssistantService implements AiAssistantService {
     }
 
     private boolean isRetryableStatus(int status) {
-        return status == 429 || status >= 500;
-    }
-
+    return status >= 500 && status != 501;
+}
     private void waitBeforeRetry(int completedAttempt) {
         long multiplier = 1L << (completedAttempt - 1);
         long exponentialDelayMillis = Math.min(
@@ -279,10 +272,4 @@ public class GeminiAiAssistantService implements AiAssistantService {
         return cause;
     }
 
-    private static final class ModelUnavailableException extends RuntimeException {
-
-        private ModelUnavailableException(Throwable cause) {
-            super(cause);
-        }
-    }
 }
