@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +24,10 @@ import java.util.Map;
 @Service
 @Slf4j
 public class GeminiAiAssistantService implements AiAssistantService {
+
+    private static final int MAX_ATTEMPTS = 3;
+    private static final Duration INITIAL_BACKOFF = Duration.ofMillis(500);
+    private static final Duration MAX_BACKOFF = Duration.ofSeconds(2);
 
     private static final String DONATION_SYSTEM_PROMPT = """
             Create a truthful draft for a community donation listing.
@@ -123,31 +128,10 @@ public class GeminiAiAssistantService implements AiAssistantService {
                 "max_tokens", 700
         );
 
-        String responseContent;
-        try {
-            JsonNode response = restClient.post()
-                    .uri(properties.getEndpoint())
-                    .header("Authorization", "Bearer " + properties.getApiKey())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(request)
-                    .retrieve()
-                    .body(JsonNode.class);
-            responseContent = response == null
-                    ? null
-                    : response.path("choices").path(0).path("message").path("content").asText(null);
-        } catch (RestClientResponseException exception) {
-            log.warn("Gemini request for {} failed with HTTP {} ({})",
-                    operation, exception.getStatusCode().value(), exception.getStatusText());
-            throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
-        } catch (ResourceAccessException exception) {
-            Throwable cause = rootCause(exception);
-            log.warn("Could not reach Gemini for {} ({}); check network, DNS, TLS, or timeout settings",
-                    operation, cause.getClass().getSimpleName());
-            throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
-        } catch (RestClientException exception) {
-            log.warn("Gemini request for {} failed ({})", operation, exception.getClass().getSimpleName());
-            throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
-        }
+        JsonNode response = requestWithRetry(request, operation);
+        String responseContent = response == null
+                ? null
+                : response.path("choices").path(0).path("message").path("content").asText(null);
 
         if (responseContent == null || responseContent.isBlank()) {
             throw new AiServiceException("Gemini returned an empty response. Please try again.");
@@ -159,6 +143,63 @@ public class GeminiAiAssistantService implements AiAssistantService {
         } catch (JsonProcessingException | IllegalArgumentException exception) {
             log.warn("Could not parse Gemini response for {} ({})", operation, exception.getClass().getSimpleName());
             throw new AiServiceException("Gemini returned an unusable response. Please try again.", exception);
+        }
+    }
+
+    private JsonNode requestWithRetry(Map<String, Object> request, String operation) {
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                return restClient.post()
+                        .uri(properties.getEndpoint())
+                        .header("Authorization", "Bearer " + properties.getApiKey())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(request)
+                        .retrieve()
+                        .body(JsonNode.class);
+            } catch (RestClientResponseException exception) {
+                int status = exception.getStatusCode().value();
+                if (!isRetryableStatus(status) || attempt == MAX_ATTEMPTS) {
+                    log.warn("Gemini request for {} failed with HTTP {} ({})",
+                            operation, status, exception.getStatusText());
+                    throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
+                }
+                log.warn("Gemini request for {} returned HTTP {}; retrying attempt {} of {}",
+                        operation, status, attempt + 1, MAX_ATTEMPTS);
+            } catch (ResourceAccessException exception) {
+                if (attempt == MAX_ATTEMPTS) {
+                    Throwable cause = rootCause(exception);
+                    log.warn("Could not reach Gemini for {} after {} attempts ({}); check network, DNS, TLS, or timeout settings",
+                            operation, MAX_ATTEMPTS, cause.getClass().getSimpleName());
+                    throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
+                }
+                log.warn("Could not reach Gemini for {} on attempt {} ({}); retrying",
+                        operation, attempt, rootCause(exception).getClass().getSimpleName());
+            } catch (RestClientException exception) {
+                log.warn("Gemini request for {} failed ({})", operation, exception.getClass().getSimpleName());
+                throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
+            }
+
+            waitBeforeRetry(attempt);
+        }
+
+        throw new AiServiceException("Gemini is temporarily unavailable. Please try again.");
+    }
+
+    private boolean isRetryableStatus(int status) {
+        return status == 429 || status >= 500;
+    }
+
+    private void waitBeforeRetry(int completedAttempt) {
+        long multiplier = 1L << (completedAttempt - 1);
+        long delayMillis = Math.min(
+                INITIAL_BACKOFF.toMillis() * multiplier,
+                MAX_BACKOFF.toMillis()
+        );
+        try {
+            Thread.sleep(delayMillis);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new AiServiceException("Gemini request was interrupted. Please try again.", exception);
         }
     }
 
