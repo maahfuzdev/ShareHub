@@ -176,13 +176,18 @@ public class GeminiAiAssistantService implements AiAssistantService {
                 }
 
                 if (!isRetryableStatus(status) || attempt == MAX_ATTEMPTS) {
-                    log.warn("Gemini request failed. Operation: {}, Model: {}, HTTP: {}, Response: {}",
-                    operation,
-                    model,
-                    status,
-                    exception.getResponseBodyAsString());
-                    throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
-                }
+
+    String message = status == 429
+            ? "AI daily quota exhausted. Please try again after the quota resets."
+            : status == 404
+                ? "AI model or endpoint not found. Please check configuration."
+                : "Gemini is temporarily unavailable. Please try again.";
+
+    log.warn("Gemini request failed. Operation: {}, Model: {}, HTTP: {}",
+            operation, model, status);
+
+    throw new AiServiceException(message, exception);
+}
                 log.warn("Gemini request for {} returned HTTP {}; retrying attempt {} of {}",
                         operation, status, attempt + 1, MAX_ATTEMPTS);
             } catch (ResourceAccessException exception) {
