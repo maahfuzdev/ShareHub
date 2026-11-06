@@ -13,7 +13,7 @@ public class AiClientConfiguration {
     @Bean
     public RestClient geminiRestClient(RestClient.Builder builder) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(5));
+        requestFactory.setConnectTimeout(Duration.ofSeconds(10));
         requestFactory.setReadTimeout(Duration.ofSeconds(60));
         return builder.requestFactory(requestFactory).build();
     }

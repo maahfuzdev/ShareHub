@@ -30,6 +30,7 @@ services:
       SPRING_FLYWAY_ENABLED: "true"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-2.5-flash}
       GEMINI_API_ENDPOINT: ${GEMINI_API_ENDPOINT:-https://generativelanguage.googleapis.com/v1beta/openai/chat/completions}
     ports:
       - "8080:8080"

@@ -12,6 +12,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -56,6 +57,7 @@ class GeminiAiAssistantServiceTest {
         properties.setApiKey("test-key");
         properties.setEndpoint(endpoint);
         properties.setModel("gemini-3.8-flash");
+        properties.setFallbackModel("");
 
         server.expect(ExpectedCount.times(3), requestTo(endpoint))
                 .andExpect(method(POST))
@@ -82,6 +84,35 @@ class GeminiAiAssistantServiceTest {
                 .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
         server.expect(requestTo(endpoint))
                 .andExpect(method(POST))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"{\\"title\\":\\"Fresh produce\\",\\"description\\":\\"A box of vegetables\\",\\"category\\":\\"FOOD\\",\\"missingDetails\\":[]}"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        GeminiAiAssistantService service = new GeminiAiAssistantService(builder.build(), properties, new ObjectMapper());
+        var result = service.suggestDonation("A box of vegetables");
+
+        assertEquals("Fresh produce", result.title());
+        server.verify();
+    }
+
+    @Test
+    void routesToFallbackModelAfterPrimaryReturnsThree503Responses() {
+        String endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiProperties properties = new AiProperties();
+        properties.setApiKey("test-key");
+        properties.setEndpoint(endpoint);
+        properties.setModel("gemini-3.8-flash");
+        properties.setFallbackModel("gemini-2.5-flash");
+
+        server.expect(ExpectedCount.times(3), requestTo(endpoint))
+                .andExpect(method(POST))
+                .andExpect(content().json("{\"model\":\"gemini-3.8-flash\"}", false))
+                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        server.expect(requestTo(endpoint))
+                .andExpect(method(POST))
+                .andExpect(content().json("{\"model\":\"gemini-2.5-flash\"}", false))
                 .andRespond(withSuccess("""
                         {"choices":[{"message":{"content":"{\\"title\\":\\"Fresh produce\\",\\"description\\":\\"A box of vegetables\\",\\"category\\":\\"FOOD\\",\\"missingDetails\\":[]}"}}]}
                         """, MediaType.APPLICATION_JSON));

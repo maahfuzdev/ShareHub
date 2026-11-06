@@ -17,17 +17,20 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @Slf4j
 public class GeminiAiAssistantService implements AiAssistantService {
 
     private static final int MAX_ATTEMPTS = 3;
-    private static final Duration INITIAL_BACKOFF = Duration.ofMillis(500);
-    private static final Duration MAX_BACKOFF = Duration.ofSeconds(2);
+    private static final Duration INITIAL_BACKOFF = Duration.ofSeconds(2);
+    private static final Duration MAX_BACKOFF = Duration.ofSeconds(4);
+    private static final long MAX_JITTER_MILLIS = 1_000;
 
     private static final String DONATION_SYSTEM_PROMPT = """
             Create a truthful draft for a community donation listing.
@@ -120,7 +123,6 @@ public class GeminiAiAssistantService implements AiAssistantService {
         }
 
         Map<String, Object> request = Map.of(
-                "model", properties.getModel(),
                 "messages", List.of(
                         Map.of("role", "system", "content", systemPrompt),
                         Map.of("role", "user", "content", input)
@@ -128,7 +130,23 @@ public class GeminiAiAssistantService implements AiAssistantService {
                 "max_tokens", 700
         );
 
-        JsonNode response = requestWithRetry(request, operation);
+        JsonNode response;
+        try {
+            response = requestWithRetry(request, properties.getModel(), operation, true);
+        } catch (ModelUnavailableException exception) {
+            String fallbackModel = properties.getFallbackModel();
+            if (fallbackModel == null || fallbackModel.isBlank()
+                    || fallbackModel.equalsIgnoreCase(properties.getModel())) {
+                log.warn("Gemini fallback is disabled or matches the primary model; cannot recover {} from HTTP 503",
+                        operation);
+                throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
+            }
+
+            log.warn("Primary Gemini model {} returned HTTP 503 after {} attempts; trying fallback model {}",
+                    properties.getModel(), MAX_ATTEMPTS, fallbackModel);
+            response = requestWithRetry(request, fallbackModel, operation, false);
+        }
+
         String responseContent = response == null
                 ? null
                 : response.path("choices").path(0).path("message").path("content").asText(null);
@@ -146,14 +164,19 @@ public class GeminiAiAssistantService implements AiAssistantService {
         }
     }
 
-    private JsonNode requestWithRetry(Map<String, Object> request, String operation) {
+    private JsonNode requestWithRetry(
+            Map<String, Object> request,
+            String model,
+            String operation,
+            boolean allowFallback
+    ) {
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
                 return restClient.post()
                         .uri(properties.getEndpoint())
                         .header("Authorization", "Bearer " + properties.getApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(request)
+                        .body(withModel(request, model))
                         .retrieve()
                         .body(JsonNode.class);
             } catch (RestClientResponseException exception) {
@@ -161,6 +184,9 @@ public class GeminiAiAssistantService implements AiAssistantService {
                 if (!isRetryableStatus(status) || attempt == MAX_ATTEMPTS) {
                     log.warn("Gemini request for {} failed with HTTP {} ({})",
                             operation, status, exception.getStatusText());
+                    if (allowFallback && status == 503) {
+                        throw new ModelUnavailableException(exception);
+                    }
                     throw new AiServiceException("Gemini is temporarily unavailable. Please try again.", exception);
                 }
                 log.warn("Gemini request for {} returned HTTP {}; retrying attempt {} of {}",
@@ -191,16 +217,24 @@ public class GeminiAiAssistantService implements AiAssistantService {
 
     private void waitBeforeRetry(int completedAttempt) {
         long multiplier = 1L << (completedAttempt - 1);
-        long delayMillis = Math.min(
+        long exponentialDelayMillis = Math.min(
                 INITIAL_BACKOFF.toMillis() * multiplier,
                 MAX_BACKOFF.toMillis()
         );
+        long jitterMillis = ThreadLocalRandom.current().nextLong(MAX_JITTER_MILLIS + 1);
+        long delayMillis = exponentialDelayMillis + jitterMillis;
         try {
             Thread.sleep(delayMillis);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             throw new AiServiceException("Gemini request was interrupted. Please try again.", exception);
         }
+    }
+
+    private Map<String, Object> withModel(Map<String, Object> request, String model) {
+        Map<String, Object> modelRequest = new HashMap<>(request);
+        modelRequest.put("model", model);
+        return modelRequest;
     }
 
     private String extractJsonObject(String response) {
@@ -243,5 +277,12 @@ public class GeminiAiAssistantService implements AiAssistantService {
             cause = cause.getCause();
         }
         return cause;
+    }
+
+    private static final class ModelUnavailableException extends RuntimeException {
+
+        private ModelUnavailableException(Throwable cause) {
+            super(cause);
+        }
     }
 }

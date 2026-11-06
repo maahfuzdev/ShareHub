@@ -10,6 +10,7 @@ public class AiProperties {
     private String apiKey = "";
     private String endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
     private String model = "gemini-3.8-flash";
+    private String fallbackModel = "gemini-2.5-flash";
 
     public String getApiKey() {
         return apiKey;
@@ -33,6 +34,14 @@ public class AiProperties {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getFallbackModel() {
+        return fallbackModel;
+    }
+
+    public void setFallbackModel(String fallbackModel) {
+        this.fallbackModel = fallbackModel;
     }
 
     public boolean isConfigured() {

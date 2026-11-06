@@ -65,7 +65,10 @@ Configure these environment variables; never commit API keys:
 |---|---|---|
 | `GEMINI_API_KEY` | unset | Google AI Studio API key; enables Gemini features |
 | `GEMINI_MODEL` | `gemini-3.8-flash` | Gemini model ID |
+| `GEMINI_FALLBACK_MODEL` | `gemini-2.5-flash` | Secondary Gemini model used when the primary model exhausts retries with HTTP 503; set blank to disable |
 | `GEMINI_API_ENDPOINT` | Google Gemini OpenAI-compatible chat completions URL | Optional API endpoint override |
+
+Transient Gemini failures (HTTP 429/5xx and network errors) are retried up to three times. Backoff waits at least 2 seconds before attempt 2 and 4–5 seconds before attempt 3. If all primary-model attempts end in HTTP 503, ShareHub retries the request against the configured fallback model.
 
 PowerShell with Docker Compose:
 
