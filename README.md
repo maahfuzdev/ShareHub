@@ -1,265 +1,207 @@
 # ShareHub
 
-ShareHub is a community resource-sharing platform built with Spring Boot. It is designed to connect people who can give useful resources with people who need support.
+ShareHub is a community resource-sharing web application. Donors can publish useful items, and recipients can discover available donations and submit or cancel requests. The project is built with Java 17 and Spring Boot and includes both server-rendered web pages and a session-based JSON API.
 
-The project supports two clients from the same backend:
+## System architecture
 
-- A Thymeleaf web experience for browser users.
-- A JSON REST API for a future mobile application or other clients.
+![ShareHub system architecture](docs/sharehub-architecture.svg)
+
+The diagram shows the current application and data flow. The API can serve external clients, but a separate mobile application is not included in this repository. For the component-level diagram and inventory, see [the architecture notes](.github/modernize/assessment/engines/facts/architecture-diagram.md).
+
+## Donor-to-recipient process
+
+![Detailed donor and recipient process flow](docs/sharehub-donor-recipient-flow.svg)
+
+The flow reflects the current implementation: donors publish available listings; recipients can request them and cancel pending requests. Donor review, approval, fulfillment, and request notifications are not currently implemented. See [the business workflow notes](.github/modernize/assessment/engines/facts/business-workflows.md) for the detailed rules and workflow.
+
+## The problem this project addresses
+
+Useful items can be available in a community while people nearby still struggle to find them. ShareHub models a simple way to connect those sides: donors list available food, clothing, books, household goods, or other resources; recipients browse the listings and request items. Donation ownership, availability, and request status are represented in the application rather than coordinated through disconnected posts or messages.
+
+This describes the problem the project is designed to solve; it is not a claim that the application is currently deployed for a live community.
 
 ## Features
 
-- Session-based registration, login and logout.
-- `DONOR` and `RECIPIENT` user roles.
-- BCrypt password hashing through Spring Security.
-- Thymeleaf login, registration and protected dashboard pages.
-- Profile page populated from the authenticated user.
-- Community donation board for browsing active listings.
-- Donation listings: donors can publish and close listings; authenticated users can browse available donations.
-- PostgreSQL persistence with Flyway database migrations.
-- Swagger/OpenAPI documentation.
-- Latitude and longitude fields prepared for location-aware features.
-- Docker Compose setup for the application and PostgreSQL.
+- Donor and recipient accounts, registration, login, and logout.
+- BCrypt password hashing and role-based access controls.
+- Session-authenticated Thymeleaf pages and JSON API endpoints.
+- Donor donation creation, editing, image upload, availability management, and listing history.
+- Recipient donation discovery, request submission, request history, and cancellation of pending requests.
+- PostgreSQL persistence for users, donations, donation images, and resource requests.
+- Flyway-managed SQL migrations and Hibernate schema validation in the default application configuration.
+- OpenAPI documentation and Docker Compose development environment.
 
 ## Technology
 
-- Java 17
-- Spring Boot 3.1.5
-- Spring Web MVC
-- Spring Data JPA
-- Spring Security 6
-- Thymeleaf and Thymeleaf Spring Security extras
-- PostgreSQL 15
-- Flyway
-- Maven Wrapper
-- Bootstrap Icons and custom responsive CSS
+| Area | Technology |
+|---|---|
+| Language | Java 17 |
+| Framework | Spring Boot 3.4.7 |
+| Web | Spring MVC, Thymeleaf |
+| Security | Spring Security 6, BCrypt, HTTP session cookies |
+| Persistence | Spring Data JPA, Hibernate |
+| Database | PostgreSQL 15 in Docker Compose |
+| Schema changes | Flyway |
+| API documentation | springdoc OpenAPI 2.2.0 |
+| Build and tests | Maven Wrapper, JUnit and Spring Boot Test |
+| Containerization | Multi-stage Docker build, Docker Compose |
 
-## Architecture
+## Architecture and data flow
 
-The web and mobile flows share the same service and repository layers:
+The browser UI and JSON API are two entry points into the same Spring Boot application. Spring Security authenticates requests and applies role-based access rules; controllers use services for application behavior, and services access PostgreSQL through Spring Data repositories. Flyway applies the SQL migrations on application startup. Donation image bytes are stored in PostgreSQL; this project does not currently use a separate object store, cache, message broker, or third-party API.
 
-```text
-Browser                  Mobile app
-	 |                         |
-	 v                         v
-WebController          AuthController / API controllers
-	 |                         |
-	 +-----------+-------------+
-							 v
-					Service layer
-							 |
-							 v
-			 Repository + PostgreSQL
-```
+The application uses cookie-backed sessions, including for JSON API clients; it does not use JWT authentication. Local sessions are not configured with a shared external session store, so a multi-instance deployment would need shared session management.
 
-`WebController` returns Thymeleaf views. REST controllers return JSON and are intended to be consumed by the mobile application. Business logic belongs in services so it is not duplicated between clients.
+## Routes
 
-## Project Structure
+### Web
 
-```text
-src/main/java/com/sharehub/sharehub/
-├── config/                  Spring Security configuration
-├── controller/              Web and REST controllers
-├── dto/                     Request and response objects
-├── entity/                  JPA entities
-├── exception/               Global exception handling
-├── repository/              Spring Data repositories
-└── service/                 Authentication and user services
+| Route | Access | Purpose |
+|---|---|---|
+| `/login`, `/register` | Public | Sign-in and registration pages |
+| `/dashboard` | Authenticated | Donor listings or recipient discovery and requests |
+| `/profile` | Authenticated | Current user's profile |
+| `/donations`, `/resources` | Authenticated | Browse available donations |
+| `/donations/new` | Donor | Publish a donation |
+| `/donations/{id}/edit` | Donor owner | Edit a listing |
+| `/recipient/requests` | Recipient | Submit a donation request |
+| `/recipient/requests/{requestId}/cancel` | Recipient owner | Cancel a pending request |
 
-src/main/resources/
-├── db/migration/             Flyway SQL migrations
-├── static/
-│   ├── css/style.css         Shared visual styles
-│   └── js/main.js            Auth and logout interactions
-└── templates/
-		├── auth/                 Login and registration pages
-		├── dashboard/            Protected dashboard
-		├── profile/              Authenticated profile page
-		├── resources/            Resources discovery page
-		├── error/                Error page
-		└── fragments/             Reusable header and footer fragments
-```
+### JSON API
 
-## Requirements
+Authentication endpoints are under `/api/auth`. Registration and login create a session; clients must retain and send the `SHAREHUB_SESSION` cookie on subsequent requests.
 
-- JDK 17 or newer.
-- PostgreSQL 15 or a compatible PostgreSQL server.
-- Git, if cloning the repository.
+| Method | Endpoint | Access | Purpose |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | Register and start a session |
+| `POST` | `/api/auth/login` | Public | Log in and start a session |
+| `POST` | `/api/auth/logout` | Authenticated | Invalidate the session |
+| `GET` | `/api/auth/session-info` | Public | Inspect current session state |
+| `GET` | `/api/donations` | Authenticated | List available donations |
+| `GET` | `/api/donations/mine` | Authenticated | List donations associated with the current account |
+| `POST` | `/api/donations` | Donor | Create a donation |
+| `POST` | `/api/donations/{id}/close` | Donor owner | Close a donation |
+| `GET` | `/api/dashboard` | Authenticated | Return the current authentication details |
 
-## Database Setup
+Donation categories are `FOOD`, `CLOTHING`, `BOOKS`, `HOUSEHOLD`, and `OTHER`. The web UI supports image uploads (JPEG, PNG, or WebP, up to 5 MB); images are stored in the database. Resource-request management currently has web routes, not a separate JSON API.
 
-The default local configuration expects:
-
-```text
-Host:     localhost
-Port:     5432
-Database: sharehub
-Username: postgres
-Password: postgres
-```
-
-Create the database before starting the application:
-
-```sql
-CREATE DATABASE sharehub;
-```
-
-Flyway automatically applies the user and donation migrations on startup. The donation board migration creates the `donations` table and indexes; existing databases are upgraded without changing the user table.
-
-For a real deployment, replace the default credentials with environment variables or an external secret manager.
-
-## Run Locally
-
-From the project directory:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Windows:
-
-```powershell
-./mvnw.cmd spring-boot:run
-```
-
-Open:
-
-- Web app: <http://localhost:8080/login>
-- Register: <http://localhost:8080/register>
-- Swagger UI: <http://localhost:8080/swagger-ui/index.html>
+Swagger UI is available at <http://localhost:8080/swagger-ui/index.html>.
 
 ## Run with Docker Compose
 
-Docker Compose starts PostgreSQL and the Spring Boot application:
+Docker Compose starts PostgreSQL and builds/runs the application. Docker Compose is the simplest local setup:
 
 ```bash
 docker compose up --build
 ```
 
-The application is available at <http://localhost:8080>. To stop the stack:
+Open <http://localhost:8080>. Stop the services with:
 
 ```bash
 docker compose down
 ```
 
-To remove the persisted PostgreSQL volume as well:
+The database data is kept in the `postgres_data` named volume. To remove that local data as well:
 
 ```bash
 docker compose down -v
 ```
 
-## REST API
+**Local development only:** the Compose file contains default database credentials and overrides Hibernate's schema mode to `update`. Do not reuse those credentials in production. In the default `application.properties` configuration, Hibernate validates the schema (`validate`) and Flyway applies migrations.
 
-All authentication endpoints are under `/api/auth`.
+## Run locally without Docker
 
-Donation endpoints use the same authenticated session:
+Requirements: JDK 17 or newer, Maven Wrapper (included), and a PostgreSQL database.
 
-| Method | Endpoint | Access | Purpose |
-|---|---|---|---|
-| `GET` | `/api/donations` | Authenticated | List available donations |
-| `GET` | `/api/donations/mine` | Authenticated | List the current user's donations |
-| `POST` | `/api/donations` | Donors | Create a donation |
-| `POST` | `/api/donations/{id}/close` | Donor who owns the listing | Close a listing |
+Create a database named `sharehub`. Configure the database through `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD`; the default host, port, database, and username are `localhost`, `5432`, `sharehub`, and `postgres`. Set `DB_PASSWORD` to the password for your local database.
 
-Donation categories are `FOOD`, `CLOTHING`, `BOOKS`, `HOUSEHOLD`, and `OTHER`. Listings can include a quantity, neighborhood/area, description, and optional availability date. The API intentionally returns the donor's display name rather than their private contact details.
+Windows PowerShell:
 
-### Register
-
-```http
-POST /api/auth/register
-Content-Type: application/json
+```powershell
+$env:DB_PASSWORD = "your-local-database-password"
+.\mvnw.cmd spring-boot:run
 ```
 
-```json
-{
-	"email": "member@example.com",
-	"password": "secret123",
-	"name": "Community Member",
-	"phone": "01700000000",
-	"address": "Dhaka",
-	"latitude": 23.8103,
-	"longitude": 90.4125,
-	"role": "DONOR"
-}
+macOS/Linux:
+
+```bash
+export DB_PASSWORD=your-local-database-password
+./mvnw spring-boot:run
 ```
 
-`role` must be either `DONOR` or `RECIPIENT`. Registration creates a session automatically.
+The server uses `PORT` when set and otherwise listens on port `8080`. `SESSION_COOKIE_SECURE` defaults to `false` for local HTTP; set it to `true` when serving the application over HTTPS.
 
-### Login
+## Database migrations
 
-```http
-POST /api/auth/login
-Content-Type: application/json
-```
+Flyway migrations are in `src/main/resources/db/migration`:
 
-```json
-{
-	"email": "member@example.com",
-	"password": "secret123"
-}
-```
+- `V1`: users
+- `V2`: donations
+- `V3`: resource requests
+- `V4`: donation images
 
-The response creates a session cookie named `SHAREHUB_SESSION`. Mobile clients should persist and send the session cookie with later requests.
+When running with the default application configuration, Flyway manages schema changes and Hibernate validates the resulting schema at startup.
 
-### Session Information
+## Build and tests
 
-```http
-GET /api/auth/session-info
-```
-
-### Logout
-
-```http
-POST /api/auth/logout
-```
-
-### Protected Dashboard API
-
-```http
-GET /api/dashboard
-```
-
-This endpoint requires an authenticated session and returns the current user's email, authorities and authentication state.
-
-## Web Routes
-
-| Route | Access | Purpose |
-|---|---|---|
-| `/login` | Public | Thymeleaf login page |
-| `/register` | Public | Thymeleaf registration page |
-| `/dashboard` | Authenticated | User dashboard |
-| `/profile` | Authenticated | Current user's profile |
-| `/resources`, `/donations` | Authenticated | Browse available donations; donors also see their listings |
-| `/donations/new` | Donors | Create a donation listing |
-| `/` | Authenticated | Redirects to dashboard |
-
-## Build and Test
-
-Compile and package without starting the database-dependent test context:
+Build the application without running tests:
 
 ```bash
 ./mvnw package -DskipTests
 ```
 
-Run the full test suite:
+Windows:
+
+```powershell
+.\mvnw.cmd package -DskipTests
+```
+
+Run the test suite:
 
 ```bash
 ./mvnw test
 ```
 
-The integration context test requires PostgreSQL credentials that match `application.properties` or the active environment. If PostgreSQL is unavailable or the password differs, the test context will fail during Flyway initialization.
+Windows:
 
-## Current Scope
+```powershell
+.\mvnw.cmd test
+```
 
-The authentication and first web experience are in place. The next product layer can add:
+The repository includes service tests for donation and resource-request behavior. The Spring application-context test connects to PostgreSQL and runs Flyway, so a reachable database with matching configuration is required for the full test suite.
 
-- Donation and resource listing entities.
-- Donor listing creation and management.
-- Recipient requests and request history.
-- Search, filtering and location-based discovery.
-- Profile editing and account settings.
-- Mobile API clients and refreshable authentication.
+## Production engineering lessons from this project
+
+Building ShareHub has given me practical experience with production-oriented concerns:
+
+- **Configuration by environment:** database connection values and the server port can be supplied by the deployment environment instead of being tied to one machine.
+- **Database change management:** versioned Flyway migrations provide an auditable schema history; Hibernate schema validation can catch a mismatch at startup.
+- **Authentication and authorization:** BCrypt password hashing, session-cookie settings, and donor/recipient permissions protect account and listing workflows.
+- **Containerized delivery:** a multi-stage Dockerfile separates the Java build image from the smaller runtime image; Compose coordinates the app and database and waits for PostgreSQL's health check.
+- **Operational data and startup behavior:** a named database volume preserves local data across container restarts, while database availability and credentials are essential to application startup.
+- **Testing behavior, not just compilation:** service tests cover core donation and request rules, and the database-backed context test exercises Flyway and application wiring.
+- **Deployment trade-offs:** secure cookies need HTTPS, local Compose credentials must be replaced, and running multiple app instances requires shared session storage and operational setup such as monitoring and database backups.
+
+This project is a learning and portfolio project, not a claim of a fully production-hardened service. The lessons above reflect concrete implementation choices and deployment gaps identified while building it.
+
+## Project layout
+
+```text
+src/main/java/com/sharehub/sharehub/
+  config/       Spring Security configuration
+  controller/   Web and REST controllers
+  dto/          API request and response objects
+  entity/       JPA entities
+  exception/    REST error handling
+  repository/   Spring Data repositories
+  service/      Authentication, donation, and request logic
+
+src/main/resources/
+  db/migration/ Flyway SQL migrations
+  static/       CSS and JavaScript
+  templates/    Thymeleaf pages and fragments
+```
 
 ## License
 
-No explicit license has been added yet.
+No license has been added to this repository yet.

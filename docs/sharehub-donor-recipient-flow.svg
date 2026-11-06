@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1180" viewBox="0 0 1500 1180" role="img" aria-labelledby="title description">
+  <title id="title">ShareHub donor-to-recipient process flow</title>
+  <desc id="description">A detailed flow of donors publishing available donations, recipients finding and requesting them, validation and persistence, optional recipient cancellation, and donor-controlled listing closure. Donor approval and fulfillment workflows are not currently implemented.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#059669"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .laneDonor { fill: #eff6ff; }
+      .laneApp { fill: #f1f5f9; }
+      .laneDb { fill: #ecfdf5; }
+      .laneRecipient { fill: #fff7ed; }
+      .laneHead { font: 700 17px Arial, sans-serif; fill: #0f172a; }
+      .title { font: 700 27px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 14px Arial, sans-serif; fill: #475569; }
+      .label { font: 600 14px Arial, sans-serif; fill: #1e293b; }
+      .small { font: 400 12px Arial, sans-serif; fill: #475569; }
+      .tiny { font: 400 11px Arial, sans-serif; fill: #64748b; }
+      .donor { fill: #ffffff; stroke: #60a5fa; stroke-width: 2; }
+      .app { fill: #ffffff; stroke: #94a3b8; stroke-width: 2; }
+      .db { fill: #ffffff; stroke: #34d399; stroke-width: 2; }
+      .recipient { fill: #ffffff; stroke: #fb923c; stroke-width: 2; }
+      .warning { fill: #fef2f2; stroke: #f87171; stroke-width: 1.5; }
+      .note { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1.5; }
+      .line { fill: none; stroke: #64748b; stroke-width: 2.2; marker-end: url(#arrow); }
+      .greenLine { fill: none; stroke: #059669; stroke-width: 2.2; marker-end: url(#greenArrow); }
+      .dashLine { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .divider { stroke: #cbd5e1; stroke-width: 1; }
+    </style>
+  </defs>
+  <rect class="bg" width="1500" height="1180" rx="18"/>
+  <text class="title" x="42" y="46">Donor-to-recipient process</text>
+  <text class="subtitle" x="42" y="72">Current ShareHub behavior from publishing a donation through requesting or closing it.</text>
+
+  <rect class="laneDonor" x="32" y="105" width="330" height="1018" rx="12"/>
+  <rect class="laneApp" x="372" y="105" width="418" height="1018" rx="12"/>
+  <rect class="laneDb" x="800" y="105" width="290" height="1018" rx="12"/>
+  <rect class="laneRecipient" x="1100" y="105" width="368" height="1018" rx="12"/>
+  <text class="laneHead" x="52" y="140">DONOR</text>
+  <text class="laneHead" x="392" y="140">SHAREHUB APPLICATION</text>
+  <text class="laneHead" x="820" y="140">POSTGRESQL</text>
+  <text class="laneHead" x="1120" y="140">RECIPIENT</text>
+  <line class="divider" x1="42" y1="156" x2="1458" y2="156"/>
+
+  <text class="label" x="52" y="187">1. Publish a resource</text>
+  <rect class="donor" x="52" y="202" width="280" height="84" rx="10"/>
+  <text class="label" x="72" y="230">Sign in as DONOR</text>
+  <text class="small" x="72" y="252">Enter title, description, category,</text>
+  <text class="small" x="72" y="270">quantity, location, optional date/image</text>
+  <rect class="app" x="392" y="202" width="376" height="84" rx="10"/>
+  <text class="label" x="412" y="230">Check role and form validation</text>
+  <text class="small" x="412" y="253">Accept valid listing; image is optional</text>
+  <path class="line" d="M332 244 H392"/>
+  <text class="tiny" x="339" y="233">submit</text>
+
+  <rect class="app" x="392" y="310" width="376" height="82" rx="10"/>
+  <text class="label" x="412" y="338">Create an AVAILABLE donation</text>
+  <text class="small" x="412" y="362">Save listing and optional image content</text>
+  <rect class="db" x="820" y="310" width="250" height="82" rx="10"/>
+  <text class="label" x="840" y="338">Persist donation</text>
+  <text class="small" x="840" y="362">Image bytes stored when provided</text>
+  <path class="line" d="M580 286 V310"/>
+  <path class="line" d="M768 351 H820"/>
+  <text class="tiny" x="773" y="340">save</text>
+
+  <rect class="app" x="392" y="416" width="376" height="82" rx="10"/>
+  <text class="label" x="412" y="444">Show listing in available donations</text>
+  <text class="small" x="412" y="468">On donor dashboard and discovery page</text>
+  <path class="dashLine" d="M945 392 V405 H580 V416"/>
+  <path class="greenLine" d="M768 457 H1120"/>
+  <text class="tiny" x="894" y="446">visible to community</text>
+  <rect class="recipient" x="1120" y="416" width="320" height="82" rx="10"/>
+  <text class="label" x="1140" y="444">2. Discover a resource</text>
+  <text class="small" x="1140" y="468">Sign in as RECIPIENT and browse listings</text>
+
+  <text class="label" x="52" y="540">3. Request an item</text>
+  <rect class="recipient" x="1120" y="516" width="320" height="88" rx="10"/>
+  <text class="label" x="1140" y="544">Choose an available donation</text>
+  <text class="small" x="1140" y="567">Optionally add a message up to 1000 chars</text>
+  <text class="small" x="1140" y="586">Submit request from dashboard</text>
+  <rect class="app" x="392" y="516" width="376" height="112" rx="10"/>
+  <text class="label" x="412" y="544">Check request rules</text>
+  <text class="small" x="412" y="568">Recipient role; donation still available;</text>
+  <text class="small" x="412" y="587">no existing PENDING or APPROVED request</text>
+  <text class="small" x="412" y="606">Message length is within limit</text>
+  <path class="line" d="M1120 560 H768"/>
+  <text class="tiny" x="922" y="549">request item</text>
+
+  <rect class="db" x="820" y="642" width="250" height="82" rx="10"/>
+  <text class="label" x="840" y="670">Save PENDING request</text>
+  <text class="small" x="840" y="694">Linked to recipient and donation</text>
+  <path class="line" d="M768 572 H790 V683 H820"/>
+  <text class="tiny" x="793" y="628">valid</text>
+  <rect class="recipient" x="1120" y="642" width="320" height="82" rx="10"/>
+  <text class="label" x="1140" y="670">See request in My Requests</text>
+  <text class="small" x="1140" y="694">Status shown as PENDING</text>
+  <path class="line" d="M1070 683 H1120"/>
+
+  <rect class="warning" x="392" y="650" width="376" height="88" rx="10"/>
+  <text class="label" x="412" y="678">If a check fails</text>
+  <text class="small" x="412" y="701">Do not create a request; show an error</text>
+  <text class="small" x="412" y="720">such as unavailable or duplicate request</text>
+  <path class="dashLine" d="M392 592 H380 V694 H392"/>
+  <text class="tiny" x="380" y="648">invalid</text>
+  <path class="dashLine" d="M768 694 H1090 V765 H1280 V724"/>
+  <text class="tiny" x="870" y="682">error shown on dashboard</text>
+
+  <text class="label" x="52" y="790">4. Optional cancellation</text>
+  <rect class="recipient" x="1120" y="766" width="320" height="82" rx="10"/>
+  <text class="label" x="1140" y="794">Cancel while request is PENDING</text>
+  <text class="small" x="1140" y="818">Only the requesting recipient can cancel</text>
+  <rect class="app" x="392" y="766" width="376" height="82" rx="10"/>
+  <text class="label" x="412" y="794">Verify owner and pending status</text>
+  <text class="small" x="412" y="818">Reject cancellation if either check fails</text>
+  <path class="line" d="M1120 807 H768"/>
+  <rect class="db" x="820" y="872" width="250" height="74" rx="10"/>
+  <text class="label" x="840" y="900">Set status to CANCELLED</text>
+  <text class="small" x="840" y="923">Keep the request history</text>
+  <path class="line" d="M580 848 V909 H820"/>
+  <path class="line" d="M1070 909 H1120"/>
+  <text class="tiny" x="1128" y="895">dashboard reflects status</text>
+
+  <text class="label" x="52" y="1000">5. Manage listing</text>
+  <rect class="donor" x="52" y="1016" width="280" height="76" rx="10"/>
+  <text class="label" x="72" y="1045">Edit or close own listing</text>
+  <text class="small" x="72" y="1069">Availability is donor-controlled</text>
+  <rect class="app" x="392" y="1016" width="376" height="76" rx="10"/>
+  <text class="label" x="412" y="1045">Set donation status to CLOSED</text>
+  <text class="small" x="412" y="1069">Closed listings leave discovery</text>
+  <rect class="db" x="820" y="1016" width="250" height="76" rx="10"/>
+  <text class="label" x="840" y="1045">Persist CLOSED status</text>
+  <text class="small" x="840" y="1069">No longer available to request</text>
+  <path class="line" d="M332 1054 H392"/>
+  <path class="line" d="M768 1054 H820"/>
+
+  <rect class="note" x="1120" y="968" width="320" height="124" rx="10"/>
+  <text class="label" x="1140" y="996">Current workflow boundary</text>
+  <text class="small" x="1140" y="1020">No donor request inbox, approve/reject,</text>
+  <text class="small" x="1140" y="1040">fulfillment action, or notification flow.</text>
+  <text class="small" x="1140" y="1066">Donor closure is independent of request</text>
+  <text class="small" x="1140" y="1084">status in the current implementation.</text>
+</svg>
