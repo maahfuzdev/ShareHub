@@ -40,6 +40,20 @@
 .donation-empty { padding: 24px; border: 1px dashed #cedbcf; border-radius: 8px; color: var(--gray); background: rgba(255,255,255,.65); }
 .donation-alert { margin: -20px 0 25px; padding: 13px 16px; border-radius: 6px; color: var(--primary-dark); background: #e4f1e6; font-size: 13px; }
 .donation-alert-error, .field-error { color: #a43c32; background: #fff0ed; }
+.donation-search { margin: 0 0 24px; padding: 20px; border: 1px solid #dfe9e0; border-radius: 8px; background: rgba(255,255,255,.94); }
+.donation-search label { display: block; margin-bottom: 8px; color: var(--dark); font-size: 14px; font-weight: 700; }
+.donation-search-controls { display: flex; gap: 10px; }
+.donation-search-controls input { flex: 1; min-width: 0; padding: 12px 13px; border: 1px solid #d7e2d8; border-radius: 5px; font: inherit; font-size: 13px; }
+.donation-search small, .ai-assistant small { display: block; margin-top: 8px; color: var(--gray); font-size: 12px; }
+.donation-search-status { margin: -12px 0 22px; color: var(--gray); font-size: 12px; }
+.ai-assistant { margin-bottom: 20px; padding: 22px 24px; border: 1px solid #dfe9e0; border-radius: 8px; background: #f7fbf7; }
+.ai-assistant h2 { margin: 0 0 8px; font: 700 22px Georgia, serif; }
+.ai-assistant p { margin: 0 0 12px; color: var(--gray); font-size: 13px; line-height: 1.5; }
+.ai-assistant label { display: block; margin-bottom: 8px; color: var(--dark); font-size: 13px; font-weight: 700; }
+.ai-assistant textarea { display: block; width: 100%; padding: 12px 13px; border: 1px solid #d7e2d8; border-radius: 5px; font: inherit; font-size: 13px; resize: vertical; }
+.ai-assistant .donation-secondary-button { margin-top: 12px; }
+.ai-assistant .ai-assistant-status { margin: 12px 0 0; }
+.donation-search-controls input:focus, .ai-assistant textarea:focus { outline: 2px solid rgba(40,102,83,.2); border-color: var(--primary); }
 .donation-form-page { max-width: 900px; }
 .donation-form { padding: clamp(22px, 4vw, 38px); }
 .donation-current-image { display: block; max-width: min(100%, 420px); max-height: 280px; object-fit: contain; border-radius: 6px; background: #f1f5f3; }
@@ -57,4 +71,5 @@
     .donation-grid { grid-template-columns: 1fr; }
     .donation-form-row { grid-template-columns: 1fr; gap: 0; }
     .donation-section-heading { align-items: start; flex-direction: column; }
+    .donation-search-controls { align-items: stretch; flex-direction: column; }
 }

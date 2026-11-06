@@ -727,12 +727,15 @@
             </div>
 
             <!-- Search & Filter Bar -->
-            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+            <form class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white"
+                  th:action="@{/dashboard}" method="get">
                 <div class="row g-3 align-items-center">
                     <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" id="recipientSearchInput" class="form-control bg-light border-start-0" placeholder="Search available items (e.g. Rice, Blanket, Books)..." oninput="renderRecipientFeed()">
+                            <input type="search" id="recipientSearchInput" name="search" maxlength="240"
+                                   th:value="${search}" class="form-control bg-light border-start-0"
+                                   placeholder="Describe what you need, e.g. warm clothes in Mirpur">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -745,10 +748,13 @@
                                 <option value="HOUSEHOLD">Home & Furniture</option>
                                 <option value="OTHER">Other</option>
                             </select>
+                            <button class="btn btn-primary-custom rounded-pill px-4" type="submit">Search</button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
+            <div class="alert alert-info py-2 mb-4" th:if="${aiSearchStatus}" th:text="${aiSearchStatus}"></div>
+            <div class="alert alert-warning py-2 mb-4" th:if="${searchError}" th:text="${searchError}"></div>
 
             <!-- Navigation Tabs for Recipient -->
             <ul class="nav nav-pills mb-4" id="recipientTab" role="tablist">
@@ -1318,18 +1324,13 @@
             const serverGrid = document.getElementById('recipientServerGrid');
             if (!serverGrid) return;
 
-            const search = (document.getElementById('recipientSearchInput')?.value || '')
-                .toLowerCase()
-                .replace(/\bclothes\b/g, 'clothing');
             const cat = document.getElementById('recipientCategoryFilter')?.value || 'ALL';
             const filteredEmptyState = document.getElementById('recipientFilteredEmptyState');
 
             const cards = Array.from(serverGrid.children);
             let visibleCount = 0;
             cards.forEach(card => {
-                const searchableText = card.querySelector('.item-card')?.textContent?.toLowerCase() || '';
-                const matches = searchableText.includes(search)
-                    && (cat === 'ALL' || card.dataset.category === cat);
+                const matches = cat === 'ALL' || card.dataset.category === cat;
                 card.classList.toggle('d-none', !matches);
                 if (matches) visibleCount++;
             });

@@ -28,6 +28,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_FLYWAY_ENABLED: "true"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      GEMINI_API_ENDPOINT: ${GEMINI_API_ENDPOINT:-https://generativelanguage.googleapis.com/v1beta/openai/chat/completions}
     ports:
       - "8080:8080"
     restart: unless-stopped

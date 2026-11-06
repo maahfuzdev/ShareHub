@@ -34,6 +34,21 @@
     <div class="donation-alert" th:if="${param.created}">Your donation is now listed.</div>
     <div class="donation-alert" th:if="${closed}">Your listing has been closed.</div>
     <div class="donation-alert donation-alert-error" th:if="${notFound}">That listing was not found in your donations.</div>
+    <div class="donation-alert donation-alert-error" th:if="${searchError}" th:text="${searchError}"></div>
+    <section class="donation-search">
+        <form th:action="@{/donations}" method="get">
+            <label for="donationSearch">Find an item</label>
+            <div class="donation-search-controls">
+                <input id="donationSearch" name="search" type="search" maxlength="240"
+                       th:value="${search}" placeholder="Describe what you need or include a neighborhood">
+                <button class="donation-primary-button" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+            <small>When configured, Gemini interprets your search; listing data stays in ShareHub and is ranked locally.</small>
+        </form>
+    </section>
+    <div class="donation-search-status" th:if="${aiSearchStatus}" th:text="${aiSearchStatus}"></div>
 
     <section class="donation-section" th:if="${isDonor}">
         <div class="donation-section-heading">
@@ -67,7 +82,10 @@
     <section class="donation-section">
         <div class="donation-section-heading">
             <div><p class="kicker">Available now</p><h2>Community donations</h2></div>
-            <span class="donation-count" th:text="${donations.size()} + ' available'">0 available</span>
+            <span class="donation-count"
+                  th:text="${search != null and !search.isEmpty() ? donations.size() + ' matches' : availableCount + ' available'}">
+                0 available
+            </span>
         </div>
         <div class="donation-grid" th:if="${!donations.isEmpty()}">
             <article class="donation-card" th:each="donation : ${donations}">

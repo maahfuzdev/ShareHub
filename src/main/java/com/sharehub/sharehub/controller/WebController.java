@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.sharehub.sharehub.service.DonationService;
+import com.sharehub.sharehub.service.DonationDiscoveryService;
 import com.sharehub.sharehub.service.ResourceRequestService;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class WebController {
 
     private final UserRepository userRepository;
     private final DonationService donationService;
+    private final DonationDiscoveryService donationDiscoveryService;
     private final ResourceRequestService resourceRequestService;
 
     /**
@@ -56,13 +58,25 @@ public class WebController {
      * Dashboard Page (Protected)
      */
     @GetMapping("/dashboard")
-    public String dashboard(@AuthenticationPrincipal User user, Model model) {
+    public String dashboard(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false, defaultValue = "") String search,
+            Model model
+    ) {
         if (user.getRole() == User.Role.RECIPIENT) {
             List<ResourceRequest> requests = resourceRequestService.findByRecipient(user.getEmail());
-            var availableDonations = donationService.findAvailable();
-            model.addAttribute("availableDonations", availableDonations);
+            DonationDiscoveryService.SearchResult discovery;
+            try {
+                discovery = donationDiscoveryService.search(search);
+            } catch (IllegalArgumentException exception) {
+                discovery = donationDiscoveryService.search("");
+                model.addAttribute("searchError", exception.getMessage());
+            }
+            model.addAttribute("availableDonations", discovery.donations());
+            model.addAttribute("search", discovery.query());
+            model.addAttribute("aiSearchStatus", discovery.status());
             model.addAttribute("recipientRequests", requests);
-            model.addAttribute("availableItemsCount", availableDonations.size());
+            model.addAttribute("availableItemsCount", discovery.totalAvailable());
             model.addAttribute("activeRequestsCount", requests.stream()
                     .filter(request -> request.getStatus() == ResourceRequest.Status.PENDING
                             || request.getStatus() == ResourceRequest.Status.APPROVED)

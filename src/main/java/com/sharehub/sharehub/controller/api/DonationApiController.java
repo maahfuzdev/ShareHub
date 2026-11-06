@@ -3,6 +3,7 @@ package com.sharehub.sharehub.controller.api;
 import com.sharehub.sharehub.dto.request.DonationRequest;
 import com.sharehub.sharehub.dto.response.DonationResponse;
 import com.sharehub.sharehub.service.DonationService;
+import com.sharehub.sharehub.service.DonationDiscoveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,11 +29,12 @@ import java.util.List;
 public class DonationApiController {
 
     private final DonationService donationService;
+    private final DonationDiscoveryService donationDiscoveryService;
 
     @GetMapping
     @Operation(summary = "List available donations")
-    public List<DonationResponse> listAvailable() {
-        return donationService.findAvailable().stream()
+    public List<DonationResponse> listAvailable(@RequestParam(required = false) String search) {
+        return donationDiscoveryService.search(search).donations().stream()
                 .map(DonationResponse::from)
                 .toList();
     }

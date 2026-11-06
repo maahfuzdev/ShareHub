@@ -27,6 +27,7 @@ This describes the problem the project is designed to solve; it is not a claim t
 - Session-authenticated Thymeleaf pages and JSON API endpoints.
 - Donor donation creation, editing, image upload, availability management, and listing history.
 - Recipient donation discovery, request submission, request history, and cancellation of pending requests.
+- Optional Gemini-assisted donation drafts and natural-language donation search with local relevance ranking.
 - PostgreSQL persistence for users, donations, donation images, and resource requests.
 - Flyway-managed SQL migrations and Hibernate schema validation in the default application configuration.
 - OpenAPI documentation and Docker Compose development environment.
@@ -51,6 +52,36 @@ This describes the problem the project is designed to solve; it is not a claim t
 The browser UI and JSON API are two entry points into the same Spring Boot application. Spring Security authenticates requests and applies role-based access rules; controllers use services for application behavior, and services access PostgreSQL through Spring Data repositories. Flyway applies the SQL migrations on application startup. Donation image bytes are stored in PostgreSQL; this project does not currently use a separate object store, cache, message broker, or third-party API.
 
 The application uses cookie-backed sessions, including for JSON API clients; it does not use JWT authentication. Local sessions are not configured with a shared external session store, so a multi-instance deployment would need shared session management.
+
+## Optional AI features
+
+The donation form can use Google Gemini to draft a title, description, and category from donor notes and suggest listing details that may be missing. Recipients can search in natural language from the dashboard or donations page. Gemini interprets the search into keywords and optional category/location hints; ShareHub ranks listings locally and does not send donation listings, account data, or recipient profile data to the AI provider. AI suggestions are editable and are never published automatically.
+
+AI is optional. Without a configured API key, donation browsing uses local keyword matching and the draft assistant returns a configuration message. With AI enabled, only the notes or search text a user submits is sent to Google Gemini. Ask users not to enter private or sensitive information.
+
+Configure these environment variables; never commit API keys:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | unset | Google AI Studio API key; enables Gemini features |
+| `GEMINI_MODEL` | `gemini-3.8-flash` | Gemini model ID |
+| `GEMINI_API_ENDPOINT` | Google Gemini OpenAI-compatible chat completions URL | Optional API endpoint override |
+
+PowerShell with Docker Compose:
+
+```powershell
+$env:GEMINI_API_KEY = "your-google-ai-studio-key"
+docker compose up --build
+```
+
+PowerShell for local Maven runs:
+
+```powershell
+$env:GEMINI_API_KEY = "your-google-ai-studio-key"
+.\mvnw.cmd spring-boot:run
+```
+
+Natural-language search is also available on `GET /api/donations?search=...`; the donor-only AI draft endpoint is `POST /api/donations/ai/suggest`. The equivalent browser endpoint is `POST /donations/ai/suggest`.
 
 ## Routes
 
@@ -78,8 +109,10 @@ Authentication endpoints are under `/api/auth`. Registration and login create a 
 | `POST` | `/api/auth/logout` | Authenticated | Invalidate the session |
 | `GET` | `/api/auth/session-info` | Public | Inspect current session state |
 | `GET` | `/api/donations` | Authenticated | List available donations |
+| `GET` | `/api/donations?search=...` | Authenticated | Search and rank available donations |
 | `GET` | `/api/donations/mine` | Authenticated | List donations associated with the current account |
 | `POST` | `/api/donations` | Donor | Create a donation |
+| `POST` | `/api/donations/ai/suggest` | Donor | Suggest an editable donation draft from notes |
 | `POST` | `/api/donations/{id}/close` | Donor owner | Close a donation |
 | `GET` | `/api/dashboard` | Authenticated | Return the current authentication details |
 

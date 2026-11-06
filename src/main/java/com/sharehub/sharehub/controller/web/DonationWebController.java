@@ -5,6 +5,7 @@ import com.sharehub.sharehub.entity.Donation;
 import com.sharehub.sharehub.entity.DonationImage;
 import com.sharehub.sharehub.entity.User;
 import com.sharehub.sharehub.service.DonationService;
+import com.sharehub.sharehub.service.DonationDiscoveryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -29,10 +30,25 @@ import org.springframework.web.multipart.MultipartFile;
 public class DonationWebController {
 
     private final DonationService donationService;
+    private final DonationDiscoveryService donationDiscoveryService;
 
     @GetMapping
-    public String list(@AuthenticationPrincipal User user, Model model) {
-        model.addAttribute("donations", donationService.findAvailable());
+    public String list(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false, defaultValue = "") String search,
+            Model model
+    ) {
+        DonationDiscoveryService.SearchResult result;
+        try {
+            result = donationDiscoveryService.search(search);
+        } catch (IllegalArgumentException exception) {
+            result = donationDiscoveryService.search("");
+            model.addAttribute("searchError", exception.getMessage());
+        }
+        model.addAttribute("donations", result.donations());
+        model.addAttribute("search", result.query());
+        model.addAttribute("aiSearchStatus", result.status());
+        model.addAttribute("availableCount", result.totalAvailable());
         model.addAttribute("isDonor", user.getRole() == User.Role.DONOR);
         if (user.getRole() == User.Role.DONOR) {
             model.addAttribute("myDonations", donationService.findByDonor(user.getEmail()));
