@@ -14,7 +14,7 @@ public class AiClientConfiguration {
     public RestClient geminiRestClient(RestClient.Builder builder) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(Duration.ofSeconds(5));
-        requestFactory.setReadTimeout(Duration.ofSeconds(30));
+        requestFactory.setReadTimeout(Duration.ofSeconds(60));
         return builder.requestFactory(requestFactory).build();
     }
 }
