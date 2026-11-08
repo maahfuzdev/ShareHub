@@ -2,17 +2,7 @@
 
 ShareHub is a community resource-sharing web application. Donors can publish useful items, and recipients can discover available donations and submit or cancel requests. The project is built with Java 17 and Spring Boot and includes both server-rendered web pages and a session-based JSON API.
 
-## System architecture
-
-![ShareHub system architecture](docs/sharehub-architecture.svg)
-
-The diagram shows the current application and data flow. The API can serve external clients, but a separate mobile application is not included in this repository. For the component-level diagram and inventory, see [the architecture notes](.github/modernize/assessment/engines/facts/architecture-diagram.md).
-
-## Donor-to-recipient process
-
-![Detailed donor and recipient process flow](docs/sharehub-donor-recipient-flow.svg)
-
-The flow reflects the current implementation: donors publish available listings; recipients can request them and cancel pending requests. Donor review, approval, fulfillment, and request notifications are not currently implemented. See [the business workflow notes](.github/modernize/assessment/engines/facts/business-workflows.md) for the detailed rules and workflow.
+Explore the repository visually with [GitDiagram](https://gitdiagram.com/maahfuzdev/sharehub).
 
 ## The problem this project addresses
 
@@ -25,8 +15,9 @@ This describes the problem the project is designed to solve; it is not a claim t
 - Donor and recipient accounts, registration, login, and logout.
 - BCrypt password hashing and role-based access controls.
 - Session-authenticated Thymeleaf pages and JSON API endpoints.
-- Donor donation creation, editing, image upload, availability management, and listing history.
-- Recipient donation discovery, request submission, request history, and cancellation of pending requests.
+- Separate dashboard and community donation listings: dashboard-created donations appear on the creator's dashboard, while `/donations/new` listings appear on the community Donations page.
+- Donor listing editing, image upload, availability management, and dashboard listing history.
+- Recipient donation discovery, request submission, request history, and cancellation of pending requests. Dashboard discovery and the general Donations page show their respective listing origins.
 - Optional Gemini-assisted donation drafts and natural-language donation search with local relevance ranking.
 - PostgreSQL persistence for users, donations, donation images, and resource requests.
 - Flyway-managed SQL migrations and Hibernate schema validation in the default application configuration.
@@ -47,15 +38,13 @@ This describes the problem the project is designed to solve; it is not a claim t
 | Build and tests | Maven Wrapper, JUnit and Spring Boot Test |
 | Containerization | Multi-stage Docker build, Docker Compose |
 
-## Architecture and data flow
+## Donation listing visibility
 
-The browser UI and JSON API are two entry points into the same Spring Boot application. Spring Security authenticates requests and applies role-based access rules; controllers use services for application behavior, and services access PostgreSQL through Spring Data repositories. Flyway applies the SQL migrations on application startup. Donation image bytes are stored in PostgreSQL; this project does not currently use a separate object store, cache, message broker, or third-party API.
-
-The application uses cookie-backed sessions, including for JSON API clients; it does not use JWT authentication. Local sessions are not configured with a shared external session store, so a multi-instance deployment would need shared session management.
+Each donation has an origin that controls where it is discovered. Donations posted through the Donor Dashboard are shown on the donor's dashboard and in recipient dashboard discovery. Donations posted through `/donations/new` are shown on the general Donations page instead. Existing records are assigned the dashboard origin by the Flyway migration; records are retained, not deleted. Donors can edit their own community listings from the Donations page.
 
 ## Optional AI features
 
-The donation form can use Google Gemini to draft a title, description, and category from donor notes and suggest listing details that may be missing. Recipients can search in natural language from the dashboard or donations page. Gemini interprets the search into keywords and optional category/location hints; ShareHub ranks listings locally and does not send donation listings, account data, or recipient profile data to the AI provider. AI suggestions are editable and are never published automatically.
+The donation form can use Google Gemini to draft a title, description, and category from donor notes and suggest listing details that may be missing. Recipients can search in natural language from the dashboard or Donations page. Gemini interprets the search into keywords and optional category/location hints; ShareHub matches and ranks listings locally using text and category comparisons, not embeddings or a vector database. Donation listings, account data, and recipient profile data are not sent to the AI provider. AI suggestions are editable and are never published automatically.
 
 AI is optional. Without a configured API key, donation browsing uses local keyword matching and the draft assistant returns a configuration message. With AI enabled, only the notes or search text a user submits is sent to Google Gemini. Ask users not to enter private or sensitive information.
 
@@ -93,13 +82,18 @@ Natural-language search is also available on `GET /api/donations?search=...`; th
 | Route | Access | Purpose |
 |---|---|---|
 | `/login`, `/register` | Public | Sign-in and registration pages |
-| `/dashboard` | Authenticated | Donor listings or recipient discovery and requests |
+| `/dashboard` | Authenticated | Donor-origin listings or recipient discovery of dashboard-origin listings and requests |
 | `/profile` | Authenticated | Current user's profile |
-| `/donations`, `/resources` | Authenticated | Browse available donations |
-| `/donations/new` | Donor | Publish a donation |
-| `/donations/{id}/edit` | Donor owner | Edit a listing |
-| `/recipient/requests` | Recipient | Submit a donation request |
-| `/recipient/requests/{requestId}/cancel` | Recipient owner | Cancel a pending request |
+| `GET /donations`, `/resources` | Authenticated | Browse community-origin donations |
+| `GET /donations/new` | Donor | Open the form for a community donation |
+| `POST /donations` | Donor | Create a community-origin donation |
+| `POST /donations/dashboard` | Donor | Create a dashboard-origin donation |
+| `GET`, `POST /donations/{id}/edit` | Donor owner | Edit a listing |
+| `GET /donations/{id}/image` | Authorized user | View an accessible donation image |
+| `POST /donations/{id}/availability` | Donor owner | Change listing availability |
+| `POST /donations/{id}/close` | Donor owner | Close a listing |
+| `POST /recipient/requests` | Recipient | Submit a donation request |
+| `POST /recipient/requests/{requestId}/cancel` | Recipient owner | Cancel a pending request |
 
 ### JSON API
 
@@ -111,10 +105,10 @@ Authentication endpoints are under `/api/auth`. Registration and login create a 
 | `POST` | `/api/auth/login` | Public | Log in and start a session |
 | `POST` | `/api/auth/logout` | Authenticated | Invalidate the session |
 | `GET` | `/api/auth/session-info` | Public | Inspect current session state |
-| `GET` | `/api/donations` | Authenticated | List available donations |
-| `GET` | `/api/donations?search=...` | Authenticated | Search and rank available donations |
-| `GET` | `/api/donations/mine` | Authenticated | List donations associated with the current account |
-| `POST` | `/api/donations` | Donor | Create a donation |
+| `GET` | `/api/donations` | Authenticated | List available community-origin donations |
+| `GET` | `/api/donations?search=...` | Authenticated | Search and rank community-origin donations |
+| `GET` | `/api/donations/mine` | Authenticated | List the current donor's dashboard-origin donations |
+| `POST` | `/api/donations` | Donor | Create a dashboard-origin donation |
 | `POST` | `/api/donations/ai/suggest` | Donor | Suggest an editable donation draft from notes |
 | `POST` | `/api/donations/{id}/close` | Donor owner | Close a donation |
 | `GET` | `/api/dashboard` | Authenticated | Return the current authentication details |
@@ -175,6 +169,7 @@ Flyway migrations are in `src/main/resources/db/migration`:
 - `V2`: donations
 - `V3`: resource requests
 - `V4`: donation images
+- `V5`: donation origin, defaulting existing records to the dashboard
 
 When running with the default application configuration, Flyway manages schema changes and Hibernate validates the resulting schema at startup.
 
