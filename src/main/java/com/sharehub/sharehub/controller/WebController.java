@@ -67,9 +67,9 @@ public class WebController {
             List<ResourceRequest> requests = resourceRequestService.findByRecipient(user.getEmail());
             DonationDiscoveryService.SearchResult discovery;
             try {
-                discovery = donationDiscoveryService.search(search);
+                discovery = donationDiscoveryService.search(search, Donation.Origin.DASHBOARD);
             } catch (IllegalArgumentException exception) {
-                discovery = donationDiscoveryService.search("");
+                discovery = donationDiscoveryService.search("", Donation.Origin.DASHBOARD);
                 model.addAttribute("searchError", exception.getMessage());
             }
             model.addAttribute("availableDonations", discovery.donations());

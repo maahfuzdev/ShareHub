@@ -2,6 +2,7 @@ package com.sharehub.sharehub.controller.api;
 
 import com.sharehub.sharehub.dto.request.DonationRequest;
 import com.sharehub.sharehub.dto.response.DonationResponse;
+import com.sharehub.sharehub.entity.Donation;
 import com.sharehub.sharehub.service.DonationService;
 import com.sharehub.sharehub.service.DonationDiscoveryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +35,7 @@ public class DonationApiController {
     @GetMapping
     @Operation(summary = "List available donations")
     public List<DonationResponse> listAvailable(@RequestParam(required = false) String search) {
-        return donationDiscoveryService.search(search).donations().stream()
+        return donationDiscoveryService.search(search, Donation.Origin.GENERAL).donations().stream()
                 .map(DonationResponse::from)
                 .toList();
     }

@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class DonationDiscoveryServiceTest {
@@ -31,7 +32,7 @@ class DonationDiscoveryServiceTest {
     void usesAiKeywordsAndCategoryToRankRelevantDonations() {
         Donation coat = donation("Warm coat", Donation.Category.CLOTHING, "Good winter coat", "Mirpur");
         Donation rice = donation("Rice", Donation.Category.FOOD, "Unopened rice", "Dhanmondi");
-        when(donationService.findAvailable()).thenReturn(List.of(rice, coat));
+        when(donationService.findAvailable(Donation.Origin.GENERAL)).thenReturn(List.of(rice, coat));
         when(aiAssistantService.isConfigured()).thenReturn(true);
         when(aiAssistantService.interpretSearch("winter jacket")).thenReturn(
                 new AiSearchIntent(List.of("coat", "jacket"), Donation.Category.CLOTHING, null)
@@ -48,7 +49,7 @@ class DonationDiscoveryServiceTest {
     void fallsBackToLocalMatchingWhenAiIsNotConfigured() {
         Donation rice = donation("Rice bag", Donation.Category.FOOD, "Unopened pantry staple", "Mirpur");
         Donation book = donation("School books", Donation.Category.BOOKS, "Used textbooks", "Uttara");
-        when(donationService.findAvailable()).thenReturn(List.of(book, rice));
+        when(donationService.findAvailable(Donation.Origin.GENERAL)).thenReturn(List.of(book, rice));
         when(aiAssistantService.isConfigured()).thenReturn(false);
 
         DonationDiscoveryService.SearchResult result = discoveryService.search("rice Mirpur");
@@ -60,7 +61,7 @@ class DonationDiscoveryServiceTest {
     @Test
     void showsLocalMatchesWhenAiSearchFails() {
         Donation rice = donation("Rice bag", Donation.Category.FOOD, "Unopened rice", "Mirpur");
-        when(donationService.findAvailable()).thenReturn(List.of(rice));
+        when(donationService.findAvailable(Donation.Origin.GENERAL)).thenReturn(List.of(rice));
         when(aiAssistantService.isConfigured()).thenReturn(true);
         when(aiAssistantService.interpretSearch("rice")).thenThrow(
                 new AiServiceException("Gemini is temporarily unavailable.")
@@ -75,6 +76,15 @@ class DonationDiscoveryServiceTest {
     @Test
     void rejectsQueriesLongerThanTheSupportedLimit() {
         assertThrows(IllegalArgumentException.class, () -> discoveryService.search("x".repeat(241)));
+    }
+
+    @Test
+    void filtersSearchesByRequestedDonationOrigin() {
+        when(donationService.findAvailable(Donation.Origin.DASHBOARD)).thenReturn(List.of());
+
+        discoveryService.search("", Donation.Origin.DASHBOARD);
+
+        verify(donationService).findAvailable(Donation.Origin.DASHBOARD);
     }
 
     private Donation donation(String title, Donation.Category category, String description, String location) {

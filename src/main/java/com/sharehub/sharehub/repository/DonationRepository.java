@@ -10,10 +10,10 @@ import java.util.Optional;
 public interface DonationRepository extends JpaRepository<Donation, Long> {
 
     @EntityGraph(attributePaths = "donor")
-    List<Donation> findByStatusOrderByCreatedAtDesc(Donation.Status status);
+    List<Donation> findByStatusAndOriginOrderByCreatedAtDesc(Donation.Status status, Donation.Origin origin);
 
     @EntityGraph(attributePaths = "donor")
-    List<Donation> findByDonorEmailOrderByCreatedAtDesc(String email);
+    List<Donation> findByDonorEmailAndOriginOrderByCreatedAtDesc(String email, Donation.Origin origin);
 
     @EntityGraph(attributePaths = "donor")
     Optional<Donation> findByIdAndDonorEmail(Long id, String email);

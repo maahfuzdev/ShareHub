@@ -40,9 +40,9 @@ public class DonationWebController {
     ) {
         DonationDiscoveryService.SearchResult result;
         try {
-            result = donationDiscoveryService.search(search);
+            result = donationDiscoveryService.search(search, Donation.Origin.GENERAL);
         } catch (IllegalArgumentException exception) {
-            result = donationDiscoveryService.search("");
+            result = donationDiscoveryService.search("", Donation.Origin.GENERAL);
             model.addAttribute("searchError", exception.getMessage());
         }
         model.addAttribute("donations", result.donations());
@@ -50,9 +50,8 @@ public class DonationWebController {
         model.addAttribute("aiSearchStatus", result.status());
         model.addAttribute("availableCount", result.totalAvailable());
         model.addAttribute("isDonor", user.getRole() == User.Role.DONOR);
-        if (user.getRole() == User.Role.DONOR) {
-            model.addAttribute("myDonations", donationService.findByDonor(user.getEmail()));
-        }
+        model.addAttribute("isRecipient", user.getRole() == User.Role.RECIPIENT);
+        model.addAttribute("currentUserEmail", user.getEmail());
         return "resources/resources";
     }
 
@@ -101,6 +100,30 @@ public class DonationWebController {
             Model model,
             RedirectAttributes redirectAttributes
     ) {
+        return createDonation(request, bindingResult, image, user, model, redirectAttributes, false);
+    }
+
+    @PostMapping("/dashboard")
+    public String createFromDashboard(
+            @Valid @ModelAttribute("donation") DonationRequest request,
+            BindingResult bindingResult,
+            @RequestParam(name = "image", required = false) MultipartFile image,
+            @AuthenticationPrincipal User user,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) {
+        return createDonation(request, bindingResult, image, user, model, redirectAttributes, true);
+    }
+
+    private String createDonation(
+            DonationRequest request,
+            BindingResult bindingResult,
+            MultipartFile image,
+            User user,
+            Model model,
+            RedirectAttributes redirectAttributes,
+            boolean fromDashboard
+    ) {
         if (user.getRole() != User.Role.DONOR) {
             return "redirect:/dashboard";
         }
@@ -110,14 +133,18 @@ public class DonationWebController {
         }
 
         try {
-            donationService.create(request, user.getEmail(), image);
+            if (fromDashboard) {
+                donationService.create(request, user.getEmail(), image);
+            } else {
+                donationService.createFromGeneralPage(request, user.getEmail(), image);
+            }
         } catch (IllegalArgumentException exception) {
             bindingResult.reject("image", exception.getMessage());
             model.addAttribute("editingDonation", false);
             return "donations/create";
         }
         redirectAttributes.addFlashAttribute("successMessage", "Your donation has been shared with the community.");
-        return "redirect:/dashboard";
+        return fromDashboard ? "redirect:/dashboard" : "redirect:/donations";
     }
 
     @PostMapping("/{id}/edit")
@@ -160,7 +187,7 @@ public class DonationWebController {
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "That donation was not found in your listings.");
         }
-        return "redirect:/dashboard";
+        return "redirect:/donations";
     }
 
     @GetMapping("/{id}/image")

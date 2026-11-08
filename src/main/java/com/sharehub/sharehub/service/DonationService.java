@@ -28,13 +28,13 @@ public class DonationService {
     private static final long MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
     @Transactional(readOnly = true)
-    public List<Donation> findAvailable() {
-        return donationRepository.findByStatusOrderByCreatedAtDesc(Donation.Status.AVAILABLE);
+    public List<Donation> findAvailable(Donation.Origin origin) {
+        return donationRepository.findByStatusAndOriginOrderByCreatedAtDesc(Donation.Status.AVAILABLE, origin);
     }
 
     @Transactional(readOnly = true)
     public List<Donation> findByDonor(String email) {
-        return donationRepository.findByDonorEmailOrderByCreatedAtDesc(email);
+        return donationRepository.findByDonorEmailAndOriginOrderByCreatedAtDesc(email, Donation.Origin.DASHBOARD);
     }
 
     @Transactional(readOnly = true)
@@ -49,6 +49,20 @@ public class DonationService {
 
     @Transactional
     public Donation create(DonationRequest request, String donorEmail, MultipartFile image) {
+        return create(request, donorEmail, image, Donation.Origin.DASHBOARD);
+    }
+
+    @Transactional
+    public Donation createFromGeneralPage(DonationRequest request, String donorEmail, MultipartFile image) {
+        return create(request, donorEmail, image, Donation.Origin.GENERAL);
+    }
+
+    private Donation create(
+            DonationRequest request,
+            String donorEmail,
+            MultipartFile image,
+            Donation.Origin origin
+    ) {
         User donor = userRepository.findByEmail(donorEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Authenticated donor was not found"));
 
@@ -60,6 +74,7 @@ public class DonationService {
         donation.setLocation(request.getLocation().trim());
         donation.setAvailableUntil(request.getAvailableUntil());
         donation.setStatus(Donation.Status.AVAILABLE);
+        donation.setOrigin(origin);
         donation.setDonor(donor);
         ImageContent imageContent = readImage(image);
         donation.setHasImage(imageContent != null);

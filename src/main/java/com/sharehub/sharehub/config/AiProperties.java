@@ -10,7 +10,7 @@ public class AiProperties {
     private String apiKey = "";
     private String endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
     private String model = "gemini-3.8-flash";
-    private String fallbackModel = "gemini-2.5-flash";
+    private String fallbackModel = "gemini-3.5-flash-lite";
 
     public String getApiKey() {
         return apiKey;

@@ -34,6 +34,8 @@
     <div class="donation-alert" th:if="${param.created}">Your donation is now listed.</div>
     <div class="donation-alert" th:if="${closed}">Your listing has been closed.</div>
     <div class="donation-alert donation-alert-error" th:if="${notFound}">That listing was not found in your donations.</div>
+    <div class="donation-alert" th:if="${requestSuccess}" th:text="${requestSuccess}"></div>
+    <div class="donation-alert donation-alert-error" th:if="${requestError}" th:text="${requestError}"></div>
     <div class="donation-alert donation-alert-error" th:if="${searchError}" th:text="${searchError}"></div>
     <section class="donation-search">
         <form th:action="@{/donations}" method="get">
@@ -49,35 +51,6 @@
         </form>
     </section>
     <div class="donation-search-status" th:if="${aiSearchStatus}" th:text="${aiSearchStatus}"></div>
-
-    <section class="donation-section" th:if="${isDonor}">
-        <div class="donation-section-heading">
-            <div><p class="kicker">Your contributions</p><h2>My donations</h2></div>
-        </div>
-        <div class="donation-grid" th:if="${!myDonations.isEmpty()}">
-            <article class="donation-card" th:each="donation : ${myDonations}">
-                <img class="donation-card-image" th:if="${donation.hasImage}"
-                     th:src="@{/donations/{id}/image(id=${donation.id})}" th:alt="${donation.title}">
-                <div class="donation-card-heading">
-                    <span class="donation-category" th:text="${donation.category}">FOOD</span>
-                    <span class="donation-status" th:classappend="${donation.status.name() == 'CLOSED'} ? ' is-closed' : ''"
-                          th:text="${donation.status}">AVAILABLE</span>
-                </div>
-                <h3 th:text="${donation.title}">Donation title</h3>
-                <p class="donation-description" th:text="${donation.description}">Description</p>
-                <dl class="donation-facts">
-                    <div><dt>Quantity</dt><dd th:text="${donation.quantity}">2 boxes</dd></div>
-                    <div><dt>Area</dt><dd th:text="${donation.location}">Dhaka</dd></div>
-                    <div th:if="${donation.availableUntil != null}"><dt>Available until</dt><dd th:text="${donation.availableUntil}">2026-10-04</dd></div>
-                </dl>
-                <form th:if="${donation.status.name() == 'AVAILABLE'}"
-                      th:action="@{/donations/{id}/close(id=${donation.id})}" method="post">
-                    <button class="donation-secondary-button" type="submit">Close listing</button>
-                </form>
-            </article>
-        </div>
-        <p class="donation-empty" th:if="${myDonations.isEmpty()}">You have not posted a donation yet.</p>
-    </section>
 
     <section class="donation-section">
         <div class="donation-section-heading">
@@ -103,6 +76,26 @@
                     <div><dt>Shared by</dt><dd th:text="${donation.donor.name}">Community member</dd></div>
                     <div th:if="${donation.availableUntil != null}"><dt>Available until</dt><dd th:text="${donation.availableUntil}">2026-10-04</dd></div>
                 </dl>
+                <a class="donation-secondary-button mb-3"
+                   th:if="${isDonor and donation.donor.email == currentUserEmail}"
+                   th:href="@{/donations/{id}/edit(id=${donation.id})}">
+                    <i class="bi bi-pencil"></i> Edit details
+                </a>
+                <form th:if="${isRecipient}" th:action="@{/recipient/requests}" method="post">
+                    <input type="hidden" name="donationId" th:value="${donation.id}">
+                    <input type="hidden" name="fromDonations" value="true">
+                    <input type="hidden" name="search" th:value="${search}">
+                    <label class="form-label small fw-semibold" th:for="'requestNotes-' + ${donation.id}">
+                        Note for donor (optional)
+                    </label>
+                    <textarea class="form-control form-control-sm mb-2"
+                              th:id="'requestNotes-' + ${donation.id}"
+                              name="message" rows="2" maxlength="1000"
+                              placeholder="Add a pickup note"></textarea>
+                    <button class="donation-primary-button" type="submit">
+                        <i class="bi bi-hand-index-thumb"></i> Request this item
+                    </button>
+                </form>
             </article>
         </div>
         <p class="donation-empty" th:if="${donations.isEmpty()}">There are no active listings right now. Check back soon.</p>

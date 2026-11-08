@@ -55,7 +55,27 @@ class DonationServiceTest {
         assertEquals("Vegetables for a neighbor", result.getDescription());
         assertEquals("2 boxes", result.getQuantity());
         assertEquals(Donation.Status.AVAILABLE, result.getStatus());
+        assertEquals(Donation.Origin.DASHBOARD, result.getOrigin());
         assertEquals(donor, result.getDonor());
+    }
+
+    @Test
+    void generalPageCreationMarksDonationAsGeneral() {
+        User donor = new User();
+        donor.setEmail("donor@example.com");
+        when(userRepository.findByEmail("donor@example.com")).thenReturn(Optional.of(donor));
+        when(donationRepository.save(any(Donation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DonationRequest request = new DonationRequest();
+        request.setTitle("Food");
+        request.setDescription("Available food");
+        request.setCategory(Donation.Category.FOOD);
+        request.setQuantity("1 box");
+        request.setLocation("Mirpur");
+
+        Donation result = donationService.createFromGeneralPage(request, "donor@example.com", null);
+
+        assertEquals(Donation.Origin.GENERAL, result.getOrigin());
     }
 
     @Test

@@ -53,6 +53,10 @@ public class Donation {
     @Column(nullable = false, length = 20)
     private Status status = Status.AVAILABLE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origin", nullable = false, length = 20)
+    private Origin origin = Origin.DASHBOARD;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "donor_id", nullable = false)
     private User donor;
@@ -79,5 +83,10 @@ public class Donation {
     public enum Status {
         AVAILABLE,
         CLOSED
+    }
+
+    public enum Origin {
+        DASHBOARD,
+        GENERAL
     }
 }

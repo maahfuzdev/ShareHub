@@ -29,12 +29,16 @@ public class DonationDiscoveryService {
     private final AiAssistantService aiAssistantService;
 
     public SearchResult search(String rawQuery) {
+        return search(rawQuery, Donation.Origin.GENERAL);
+    }
+
+    public SearchResult search(String rawQuery, Donation.Origin origin) {
         String query = rawQuery == null ? "" : rawQuery.trim();
         if (query.length() > MAX_QUERY_LENGTH) {
             throw new IllegalArgumentException("Search must be 240 characters or fewer.");
         }
 
-        List<Donation> available = donationService.findAvailable();
+        List<Donation> available = donationService.findAvailable(origin);
         if (query.isBlank()) {
             return new SearchResult(available, available.size(), query, null);
         }

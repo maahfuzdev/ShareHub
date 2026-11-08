@@ -22,12 +22,14 @@ public class ResourceRequestWebController {
     public String create(
             @RequestParam Long donationId,
             @RequestParam(required = false) String message,
+            @RequestParam(defaultValue = "false") boolean fromDonations,
+            @RequestParam(required = false) String search,
             @AuthenticationPrincipal User recipient,
             RedirectAttributes redirectAttributes
     ) {
         if (recipient.getRole() != User.Role.RECIPIENT) {
             redirectAttributes.addFlashAttribute("requestError", "Only recipients can request donations.");
-            return "redirect:/dashboard";
+            return fromDonations ? "redirect:/donations" : "redirect:/dashboard";
         }
 
         try {
@@ -35,6 +37,12 @@ public class ResourceRequestWebController {
             redirectAttributes.addFlashAttribute("requestSuccess", "Your request has been submitted.");
         } catch (IllegalArgumentException | IllegalStateException exception) {
             redirectAttributes.addFlashAttribute("requestError", exception.getMessage());
+        }
+        if (fromDonations) {
+            if (search != null && !search.isBlank()) {
+                redirectAttributes.addAttribute("search", search);
+            }
+            return "redirect:/donations";
         }
         return "redirect:/dashboard";
     }
